@@ -11,8 +11,8 @@ import {
   Button,
   Divider,
   Modal,
-  Badge,
   message,
+  DatePicker,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
@@ -22,23 +22,25 @@ import styles from '../EvaluationManagement/ManagementView.less';
 
 const FormItem = Form.Item;
 const confirm = Modal.confirm;
+const { RangePicker } = DatePicker;
+
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
-const statusMap = [
-  {key:'1',icon:'success',text:'评价中'},
-  {key:'4',icon:'default',text:'未开启'},
-  {key:'8',icon:'error',text:'关闭'},
+const roleMap = [
+  {key:'0',text:'超级管理员'},
+  {key:'1',text:'用户'},
+  {key:'2',text:'用户2'},
 ];
 /* eslint react/no-multi-comp:0 */
-@connect(({ sourceTable, sourceOther, loading }) => ({
-  sourceTable,
-  sourceOther,
-  loading: loading.models.sourceTable,
+@connect(({ usertable, userother, loading }) => ({
+  usertable,
+  userother,
+  loading: loading.models.usertable,
 }))
 @Form.create()
-class SourceConfigList extends PureComponent {
+class UserManagement extends PureComponent {
   state = {
     selectedRows: [],
     formValues: {},
@@ -50,52 +52,52 @@ class SourceConfigList extends PureComponent {
       dataIndex: 'key',
     },
     {
-      title: '来源名称',
-      dataIndex: 'sourceName',
+      title: 'ID',
+      dataIndex: 'id',
     },
     {
-      title: '评价模板',
-      dataIndex: 'templateName',
+      title: '用户名',
+      dataIndex: 'username',
     },
     {
-      title: '密钥',
-      dataIndex: 'idCode',
+      title: '手机号',
+      dataIndex: 'mobile',
     },
     {
-      title: '评价状态',
-      dataIndex: 'state',
+      title: '邮箱',
+      dataIndex: 'email',
+    },
+    {
+      title: '角色名称',
+      dataIndex: 'userType',
       render: (val) => {
-        for(let i=0;i<statusMap.length;i++){
-          if(val == statusMap[i].key) {
-            return <Badge status={statusMap[i].icon} text={statusMap[i].text} />
+        for(let i=0;i<roleMap.length;i++){
+          if(val == roleMap[i].key) {
+            return roleMap[i].text
           }
         }
       },
     },
     {
-      title: '最新操作时间',
-      render: (record) => (
-        formatDateTime(record.gmtModify)
-      ),
+      title: '添加时间',
+      dataIndex: 'gmtCreate',
     },
     {
       title: '操作',
       render: (record) => {
-        if(record.state == 1) {
+        if(record.status == '1') {
           return <Fragment>
-                  <a onClick={() => this.handleUpdate(record, 8)}>关闭</a>
+                  <Link to={{pathname:'/systemmanagement/useredit',userInfo:record}}>编辑</Link>
                   <Divider type="vertical" />
-                  <Link to={{pathname:'/evaluation-center/source-config-edit',sourceMsg:record}}>查看</Link>
+                  <a onClick={() => this.handleOpen(record)}>恢复</a>
                 </Fragment>
         }
-        else {
-          return  <Fragment>
-                    <a onClick={() => this.handleUpdate(record, 1)}>开启</a>
-                    <Divider type="vertical" />
-                    <Link to={{pathname:'/evaluation-center/source-config-edit',sourceMsg:record}}>编辑</Link>
-                    <Divider type="vertical" />
-                    <a onClick={() => this.handleUpdate(record, 2)}>删除</a>
-                  </Fragment>
+        else if(record.status == '0'){
+          return <Fragment>
+                  <Link to={{pathname:'/systemmanagement/useredit',userInfo:record}}>编辑</Link>
+                  <Divider type="vertical" />
+                  <a onClick={() => this.handleDisable(record)}>禁用</a>
+                </Fragment>
         }
       },
     },
@@ -104,35 +106,60 @@ class SourceConfigList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'sourceTable/fetch',
+      type: 'usertable/fetch',
       payload: {
+        username: '',
+        mobile: '',
+        status: '',
+        startDate: '',
+        endDate: '',
         page: 1,
-        count: 10,
-        name: '',
+        size: 10     
       },
     });
   }
 
-  handleUpdate = (record, state) => {
+  handleDisable = (record) => {
     const { dispatch } = this.props;
     const params = {
-      sourceId: record.sourceId,
-      state: state,
+      userId: record.id,
     }
+    let that = this;
     confirm({
-      title: '是否开启该选项?',
+      title: '是否禁用该用户?',
       okText: "确认",
       cancelText: "取消",
       onOk() {
         dispatch({
-          type: 'sourceOther/update',
+          type: 'userother/disable',
           payload: params,
           callback: () =>{
             message.success('操作成功');
-            dispatch({
-              type: 'sourceTable/fetch',
-              payload: params,
-            });
+            that.handleFormReset();
+          }
+        });
+      },
+      onCancel() {},
+    });
+  };
+
+  handleOpen = (record) => {
+    const { dispatch } = this.props;
+    const params = {
+      userId: record.id,
+    }
+    let that = this;
+    confirm({
+      title: '是否启用该用户?',
+      okText: "确认",
+      cancelText: "取消",
+      onOk() {
+        dispatch({
+          type: 'userother/open',
+          payload: params,
+          callback: () =>{
+            message.success('操作成功');
+            that.handleFormReset();
           }
         });
       },
@@ -161,7 +188,7 @@ class SourceConfigList extends PureComponent {
     }
 
     dispatch({
-      type: 'sourceTable/fetch',
+      type: 'usertable/fetch',
       payload: params,
     });
   };
@@ -173,18 +200,16 @@ class SourceConfigList extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'sourceTable/fetch',
+      type: 'usertable/fetch',
       payload: {
+        username: '',
+        mobile: '',
+        status: '',
+        startDate: '',
+        endDate: '',
         page: 1,
-        count: 10,
-        name: '',
+        size: 10     
       },
-    });
-  };
-
-  handleSelectRows = rows => {
-    this.setState({
-      selectedRows: rows,
     });
   };
 
@@ -205,15 +230,16 @@ class SourceConfigList extends PureComponent {
         formValues: values,
       });
 
+      if(values.time != undefined){
+        values.startDate = formatDateTime(values.time[0]);
+        values.endDate = formatDateTime(values.time[1]);
+      }
+
       dispatch({
-        type: 'sourceTable/fetch',
+        type: 'usertable/fetch',
         payload: values,
       });
     });
-  };
-
-  handleAddSource = () => {
-    router.push('/evaluation-center/source-config-add');
   };
 
   renderForm() {
@@ -224,8 +250,13 @@ class SourceConfigList extends PureComponent {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="来源名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            <FormItem label="用 户 名 ">
+              {getFieldDecorator('username')(<Input placeholder="请输入" />)}
+            </FormItem>
+          </Col>
+          <Col md={8} sm={24}>
+            <FormItem label="手 机 号 ">
+              {getFieldDecorator('mobile')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -239,32 +270,40 @@ class SourceConfigList extends PureComponent {
             </span>
           </Col>
         </Row>
+
+        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+          <Col md={8} sm={24}>
+            <FormItem label="评价时间">
+              {getFieldDecorator('time')(<RangePicker />)}
+            </FormItem>
+          </Col>
+        </Row>
       </Form>
     );
   }
 
   render() {
     const {
-      sourceTable: { sourceTable },
+      usertable: { UserTable },
       loading,
     } = this.props;
     const { selectedRows } = this.state;
 
     return (
-      <PageHeaderWrapper title="来源配置">
+      <PageHeaderWrapper title="用户管理">
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Button icon="plus" type="primary" onClick={() => this.handleAddSource()}>
-                新增
+              <Button type="primary" onClick={() => {router.push('/systemmanagement/useradd')}}>
+                开通用户
               </Button>
             </div>
             <StandardTable
               selectedRows={selectedRows}
-              data={sourceTable}
+              loading={loading}
+              data={UserTable}
               columns={this.columns}
-              onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />
           </div>
@@ -274,4 +313,4 @@ class SourceConfigList extends PureComponent {
   }
 }
 
-export default SourceConfigList;
+export default UserManagement;

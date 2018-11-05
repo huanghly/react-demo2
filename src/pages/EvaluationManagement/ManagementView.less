@@ -40,6 +40,7 @@
   .ant-tree-node-content-wrapper {
     height: 33px !important;
     margin-left: 5px !important;
+    margin-top: 15px;
     padding: 0 !important;
   }
   .ant-tree li {
@@ -97,4 +98,12 @@
   }
 }
 
-
+:global {
+  tr.drop-over-downward td {
+    border-bottom: 2px dashed #1890ff;
+  }
+  
+  tr.drop-over-upward td {
+    border-top: 2px dashed #1890ff;
+  }
+}

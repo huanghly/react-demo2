@@ -1,6 +1,7 @@
 import React, { PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
 import router from 'umi/router';
+import { Link } from 'dva/router';
 import {
   Row,
   Col,
@@ -12,11 +13,204 @@ import {
   Modal,
   Tree,
   Icon,
+  Table,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 import styles from '../EvaluationManagement/ManagementView.less';
+
+import { DragDropContext, DragSource, DropTarget } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+import update from 'immutability-helper';
+
+function dragDirection(
+  dragIndex,
+  hoverIndex,
+  initialClientOffset,
+  clientOffset,
+  sourceClientOffset,
+) {
+  const hoverMiddleY = (initialClientOffset.y - sourceClientOffset.y) / 2;
+  const hoverClientY = clientOffset.y - sourceClientOffset.y;
+  if (dragIndex < hoverIndex && hoverClientY > hoverMiddleY) {
+    return 'downward';
+  }
+  if (dragIndex > hoverIndex && hoverClientY < hoverMiddleY) {
+    return 'upward';
+  }
+}
+
+class BodyRow extends React.Component {
+  render() {
+    const {
+      isOver,
+      connectDragSource,
+      connectDropTarget,
+      moveRow,
+      dragRow,
+      clientOffset,
+      sourceClientOffset,
+      initialClientOffset,
+      ...restProps
+    } = this.props;
+    const style = { ...restProps.style, cursor: 'move' };
+
+    let className = restProps.className;
+    if (isOver && initialClientOffset) {
+      const direction = dragDirection(
+        dragRow.index,
+        restProps.index,
+        initialClientOffset,
+        clientOffset,
+        sourceClientOffset
+      );
+      if (direction === 'downward') {
+        className += ' drop-over-downward';
+      }
+      if (direction === 'upward') {
+        className += ' drop-over-upward';
+      }
+    }
+
+    return connectDragSource(
+      connectDropTarget(
+        <tr
+          {...restProps}
+          className={className}
+          style={style}
+        />
+      )
+    );
+  }
+}
+
+const rowSource = {
+  beginDrag(props) {
+    return {
+      index: props.index,
+    };
+  },
+};
+
+const rowTarget = {
+  drop(props, monitor) {
+    const dragIndex = monitor.getItem().index;
+    const hoverIndex = props.index;
+
+    // Don't replace items with themselves
+    if (dragIndex === hoverIndex) {
+      return;
+    }
+
+    // Time to actually perform the action
+    props.moveRow(dragIndex, hoverIndex);
+
+    // Note: we're mutating the monitor item here!
+    // Generally it's better to avoid mutations,
+    // but it's good here for the sake of performance
+    // to avoid expensive index searches.
+    monitor.getItem().index = hoverIndex;
+  },
+};
+
+const DragableBodyRow = DropTarget('row', rowTarget, (connect, monitor) => ({
+  connectDropTarget: connect.dropTarget(),
+  isOver: monitor.isOver(),
+  sourceClientOffset: monitor.getSourceClientOffset(),
+}))(
+  DragSource('row', rowSource, (connect, monitor) => ({
+    connectDragSource: connect.dragSource(),
+    dragRow: monitor.getItem(),
+    clientOffset: monitor.getClientOffset(),
+    initialClientOffset: monitor.getInitialClientOffset(),
+  }))(BodyRow)
+);
+
+const columns = [{
+  title: '标签名称',
+  dataIndex: 'name',
+  key: 'name',
+}, {
+  title: '操作',
+  render: (record) => (
+    <div><Icon type="colum-height" theme="outlined" /></div>
+  ),
+}];
+
+@connect(({ labelRelationOther }) => ({
+  labelRelationOther,
+}))
+@Form.create()
+class DragSortingTable extends React.Component {
+  state = {
+    data: [],
+  }
+
+  componentDidMount() {
+    const {
+      labelRelationOther: { LabelDisorderData },
+    } = this.props;
+    this.setState({data: LabelDisorderData.data})
+  }
+
+  components = {
+    body: {
+      row: DragableBodyRow,
+    },
+  }
+
+  moveRow = (dragIndex, hoverIndex) => {
+    const { data } = this.state;
+    const dragRow = data[dragIndex];
+
+    this.setState(
+      update(this.state, {
+        data: {
+          $splice: [[dragIndex, 1], [hoverIndex, 0, dragRow]],
+        },
+      }),
+    );
+  }
+
+  submit() {
+    const {
+      handleModalVisible,
+      chooseRow,
+      dispatch,
+    } = this.props;
+    dispatch({
+      type: 'labelRelationOther/orderResult',
+      payload: {
+        sourceId: chooseRow.sourceId,
+        tags: this.state.data,
+      },
+      callback: () => {
+        handleModalVisible();
+      }
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        <Table
+          columns={columns}
+          dataSource={this.state.data}
+          components={this.components}
+          onRow={(record, index) => ({
+            index,
+            moveRow: this.moveRow,
+          })}
+          rowKey="id"
+        />
+        <div style={{textAlign:"right"}}><Button type="primary" onClick={this.submit.bind(this)}>提交</Button></div>
+      </div>
+    );
+  }
+}
+
+const DragTable = DragDropContext(HTML5Backend)(DragSortingTable);
 
 const FormItem = Form.Item;
 const getValue = obj =>
@@ -24,89 +218,26 @@ const getValue = obj =>
     .map(key => obj[key])
     .join(',');
 
-const TreeNode = Tree.TreeNode;
-
-const gData = [];
-
-class SortList extends React.Component {
-  state = {
-    gData,
-  }
-
-  componentWillMount() {
-    this.setState({
-      gData: ["node 1", "node 2", "node 3", "node 4"]
-    })
-  }
-
-  onDrop = (info) => {
-    let newGData = this.state.gData;
-    let start = this.state.gData.indexOf(info.dragNodesKeys[0]);
-    let end = info.dropPosition-1;
-    let cache = newGData[this.state.gData.indexOf(info.dragNodesKeys[0])];
-    for(let i=start;i<end;i++){
-      newGData[i] = newGData[i+1];
-    }
-    newGData[end] = cache;
-    this.setState({gData: newGData});
-  }
-
-  render() {
-    return (
-      <Tree
-        className="draggable-tree"
-        defaultExpandedKeys={this.state.expandedKeys}
-        draggable
-        onDrop={this.onDrop}
-      >
-        {
-          this.state.gData.map((item, index) => {
-            return <TreeNode title={
-              <div className={styles.sortListNode+" clearfix"}>
-                <div className={styles.id}>{index+1}</div>
-                <div className={styles.content}>{item}</div>
-                <div className={styles.icon}><Icon type="colum-height" theme="outlined" /></div>
-              </div>
-            } key={item} ></TreeNode>
-          })
-        }
-      </Tree>
-    );
-  }
-}
-
 const SortModal = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
-  const okHandle = () => {
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      form.resetFields();
-      //handleAdd(fieldsValue);
-      handleModalVisible();
-    });
-  };
+  const { modalVisible, handleModalVisible, chooseRow } = props;
   return (
     <Modal
       destroyOnClose
       title="标签排序"
       visible={modalVisible}
-      onOk={okHandle}
       onCancel={() => handleModalVisible()}
+      footer={null}
     >
-      <div className={styles.sortListHead+" clearfix"}>
-        <span>序号</span>
-        <span style={{margin:"0 70px"}}>标签名称</span>
-        <span>操作</span>
-      </div>
-      <SortList />
+      <DragTable handleModalVisible={handleModalVisible} chooseRow={chooseRow}/>
     </Modal>
   );
 });
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ labelRelationTable, labelRelationOther, loading }) => ({
+  labelRelationTable,
+  labelRelationOther,
+  loading: loading.models.labelRelationTable,
 }))
 @Form.create()
 class LabelRelationList extends PureComponent {
@@ -114,26 +245,27 @@ class LabelRelationList extends PureComponent {
     selectedRows: [],
     formValues: {},
     modalVisible: false,
+    chooseRow: {},
   };
 
   columns = [
     {
       title: '序号',
-      dataIndex: 'id',
+      dataIndex: 'key',
     },
     {
       title: '来源名称',
-      dataIndex: 'itemName',
+      dataIndex: 'sourceName',
     },
     {
       title: '已经关联标签',
-      dataIndex: 'area',
+      dataIndex: 'relativeTags',
     },
     {
       title: '操作',
       render: (record) => (
         <Fragment>
-          <a onClick={() => this.handleSetting(record)}>设置关联标签</a>
+          <Link to={{pathname:'/evaluation-center/label-relation-setting',tagDetail:record}}>设置关联标签</Link>
           <Divider type="vertical" />
           <a onClick={() => this.handleModalVisible(true, record)}>标签排序</a>
         </Fragment>
@@ -144,22 +276,40 @@ class LabelRelationList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'labelRelationTable/fetch',
+      payload: {
+        page: 1,
+        count: 10,
+        sourceName: '',
+      },
     });
   }
 
   handleSetting = (record) => {
-    router.push('/labelrelationsetting');
+    router.push('/evaluation-center/label-relation-setting');
   };
 
-  handleSort = (record) => {
-
-  };
-
-  handleModalVisible = flag => {
-    this.setState({
-      modalVisible: !!flag,
-    });
+  handleModalVisible = (flag, record) => {
+    const { dispatch } = this.props;
+    if(record != undefined){
+      this.setState({chooseRow: record});
+      dispatch({
+        type: 'labelRelationOther/getList',
+        payload: {
+          sourceId: record.sourceId,
+        },
+        callback: () =>{
+          this.setState({
+            modalVisible: !!flag,
+          });
+        }
+      });
+    }
+    else {
+      this.setState({
+        modalVisible: !!flag,
+      });
+    }
   };
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
@@ -183,7 +333,7 @@ class LabelRelationList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'labelRelationTable/fetch',
       payload: params,
     });
   };
@@ -195,7 +345,7 @@ class LabelRelationList extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'rule/fetch',
+      type: 'labelRelationTable/fetch',
       payload: {},
     });
   };
@@ -224,14 +374,10 @@ class LabelRelationList extends PureComponent {
       });
 
       dispatch({
-        type: 'rule/fetch',
+        type: 'labelRelationTable/fetch',
         payload: values,
       });
     });
-  };
-
-  handleAddSource = () => {
-    router.push('/sourceconfigadd');
   };
 
   renderForm() {
@@ -243,12 +389,12 @@ class LabelRelationList extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="来源名称">
-              {getFieldDecorator('sourcename')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('sourceName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="标签名称">
-              {getFieldDecorator('labelname')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('tagName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -268,13 +414,14 @@ class LabelRelationList extends PureComponent {
 
   render() {
     const {
-      rule: { data },
+      labelRelationTable: { labelRelationTable },
       loading,
     } = this.props;
     const { selectedRows, modalVisible } = this.state;
     const parentMethods = {
       handleModalVisible: this.handleModalVisible,
     };
+
     return (
       <PageHeaderWrapper title="标签关联">
         <Card bordered={false}>
@@ -283,14 +430,14 @@ class LabelRelationList extends PureComponent {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={data}
+              data={labelRelationTable}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />
           </div>
         </Card>
-        <SortModal {...parentMethods} modalVisible={modalVisible} />
+        <SortModal {...parentMethods} modalVisible={modalVisible} chooseRow={this.state.chooseRow}/>
       </PageHeaderWrapper>
     );
   }

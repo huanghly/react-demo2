@@ -12,32 +12,57 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 const FormItem = Form.Item;
 
-@connect(({ loading }) => ({
+@connect(({ sourceOther, loading }) => ({
+  sourceOther,
   submitting: loading.effects['form/submitRegularForm'],
 }))
 @Form.create()
 class SourceConfigEdit extends PureComponent {
+
+  componentWillMount() {
+    const { dispatch } = this.props;
+    const sourceMsg = this.props.location.sourceMsg;
+    if(sourceMsg != undefined) {
+      dispatch({
+        type: 'sourceOther/getSourceInfo',
+        payload: {
+          sourceId: sourceMsg.sourceId,
+        },
+      });
+    }
+    else {
+      router.push('/evaluation-center/source-config-list');
+    }
+  }
+
   handleSubmit = e => {
-    const { dispatch, form } = this.props;
+    const { dispatch, form,
+      sourceOther: { sourceInfo }, 
+          } = this.props;
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
       if (!err) {
+        const params = {
+          sourceId: sourceInfo.data.sourceId,
+          ...values,
+        };
         dispatch({
-          type: 'form/submitRegularForm',
-          payload: values,
+          type: 'sourceOther/updateInfo',
+          payload: params,
         });
       }
     });
   };
 
   returnSourceList = () => {
-    router.push('/sourceconfiglist');
+    router.push('/evaluation-center/source-config-list');
   };
 
   render() {
     const { submitting } = this.props;
     const {
       form: { getFieldDecorator, getFieldValue },
+      sourceOther: { sourceInfo },
     } = this.props;
 
     const formItemLayout = {
@@ -59,56 +84,56 @@ class SourceConfigEdit extends PureComponent {
       },
     };
 
+    let templateRadioList = [];
+    if(Object.keys(sourceInfo).length != 0 && sourceInfo.success) {
+      for(let i = 0, length = sourceInfo.data.templateList.length;i < length;i++){
+        templateRadioList.push(<Radio value={sourceInfo.data.templateList[i].key} key={sourceInfo.data.templateList[i].key}>{sourceInfo.data.templateList[i].value}</Radio>)
+      }
+    }
     return (
       <PageHeaderWrapper
-        title={"来源配置-新增"}
+        title={"来源配置-编辑"}
       >
         <Card bordered={false}>
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
             <FormItem {...formItemLayout} label={"密钥"}>
-              {getFieldDecorator('title', {})(<label>123123123123</label> )}
+              {getFieldDecorator('idCode', {})(<label>{Object.keys(sourceInfo).length != 0?sourceInfo.data.idCode:''}</label> )}
             </FormItem>
             <FormItem {...formItemLayout} label={"来源名称"}>
-              {getFieldDecorator('title', {
+              {getFieldDecorator('sourceName', {
                 rules: [
                   {
                     required: true,
                     message: "来源不能为空",
                   },
                 ],
-              })(<Input placeholder={"来源名称"} />)}
+                initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.sourceName:'',
+              })(<Input placeholder={"来源名称"}/>)}
             </FormItem>
             <FormItem
               {...formItemLayout}
               label={"评价模版"}
             >
               <div>
-                {getFieldDecorator('public', {
-                  initialValue: '1',
+                {getFieldDecorator('templateId', {
+                  initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.selectedTemplateId.toString():'',
                 })(
                   <Radio.Group>
-                    <Radio value="1">
-                      模版一
-                    </Radio>
-                    <Radio value="2">
-                      模版二
-                    </Radio>
-                    <Radio value="3">
-                      自定义
-                    </Radio>
+                    {templateRadioList}
                   </Radio.Group>
                 )}
               </div>
             </FormItem>
             <FormItem {...formItemLayout} label={"评价后续动作"}>
-              {getFieldDecorator('action', {
+              {getFieldDecorator('backUrl', {
                 rules: [
                   {
                     required: true,
                     message: "页面地址不能为空",
                   },
                 ],
-              })(<Input placeholder={"请输入评价完成后打开页面地址"} />)}
+                initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.backUrl:'',
+              })(<Input placeholder={"请输入评价完成后打开页面地址"}/>)}
             </FormItem>
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
               <Button type="primary" htmlType="submit" loading={submitting}>

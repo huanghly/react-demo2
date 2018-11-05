@@ -12,18 +12,27 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 const FormItem = Form.Item;
 
-@connect(({ loading }) => ({
+@connect(({ sourceOther, loading }) => ({
+  sourceOther,
   submitting: loading.effects['form/submitRegularForm'],
 }))
 @Form.create()
 class SourceConfigAdd extends PureComponent {
+  
+  componentDidMount() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'sourceOther/templateList',
+    });
+  }
+
   handleSubmit = e => {
     const { dispatch, form } = this.props;
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
       if (!err) {
         dispatch({
-          type: 'form/submitRegularForm',
+          type: 'sourceOther/add',
           payload: values,
         });
       }
@@ -31,13 +40,14 @@ class SourceConfigAdd extends PureComponent {
   };
 
   returnSourceList = () => {
-    router.push('/sourceconfiglist');
+    router.push('/evaluation-center/source-config-list');
   };
 
   render() {
     const { submitting } = this.props;
     const {
       form: { getFieldDecorator, getFieldValue },
+      sourceOther: { templateList },
     } = this.props;
 
     const formItemLayout = {
@@ -59,6 +69,13 @@ class SourceConfigAdd extends PureComponent {
       },
     };
 
+    let templateRadioList = [];
+    if(Object.keys(templateList).length != 0 && templateList.success) {
+      for(let i = 0, length = templateList.data.length;i < length;i++){
+        templateRadioList.push(<Radio value={templateList.data[i].key} key={templateList.data[i].key}>{templateList.data[i].value}</Radio>)
+      }
+    }
+
     return (
       <PageHeaderWrapper
         title={"来源配置-新增"}
@@ -66,7 +83,7 @@ class SourceConfigAdd extends PureComponent {
         <Card bordered={false}>
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
             <FormItem {...formItemLayout} label={"来源名称"}>
-              {getFieldDecorator('title', {
+              {getFieldDecorator('sourceName', {
                 rules: [
                   {
                     required: true,
@@ -80,29 +97,27 @@ class SourceConfigAdd extends PureComponent {
               label={"评价模版"}
             >
               <div>
-                {getFieldDecorator('public', {
-                  initialValue: '1',
+                {getFieldDecorator('templateId', {
+                  rules: [
+                    {
+                      required: true,
+                      message: "模板不能为空",
+                    },
+                  ],
                 })(
                   <Radio.Group>
-                    <Radio value="1">
-                      模版一
-                    </Radio>
-                    <Radio value="2">
-                      模版二
-                    </Radio>
-                    <Radio value="3">
-                      自定义
-                    </Radio>
+                    {templateRadioList}
                   </Radio.Group>
                 )}
               </div>
             </FormItem>
             <FormItem {...formItemLayout} label={"评价后续动作"}>
-              {getFieldDecorator('action', {
+              {getFieldDecorator('backUrl', {
                 rules: [
                   {
                     required: true,
-                    message: "页面地址不能为空",
+                    message: "页面地址不能为空且必须是一个合法的地址",
+                    type: 'url'
                   },
                 ],
               })(<Input placeholder={"请输入评价完成后打开页面地址"} />)}

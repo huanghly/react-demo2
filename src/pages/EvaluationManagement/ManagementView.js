@@ -1,5 +1,6 @@
 import React, { PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
+import { Link } from 'dva/router';
 import router from 'umi/router';
 import {
   Row,
@@ -10,6 +11,7 @@ import {
   Icon,
   Button,
   Rate,
+  Select,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
@@ -17,15 +19,17 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './ManagementView.less';
 
 const FormItem = Form.Item;
+const { Option } = Select;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ evaluationTable, evaluationOther, loading }) => ({
+  evaluationTable,
+  evaluationOther,
+  loading: loading.models.evaluationTable,
 }))
 @Form.create()
 class EvaluationManagement extends PureComponent {
@@ -38,37 +42,37 @@ class EvaluationManagement extends PureComponent {
   columns = [
     {
       title: '序号',
-      dataIndex: 'id',
+      dataIndex: 'key',
     },
     {
       title: '事项名称',
-      dataIndex: 'itemName',
+      dataIndex: 'matterName',
     },
     {
       title: '事项所属区域',
-      dataIndex: 'area',
+      dataIndex: 'areaName',
     },
     {
       title: '评价人次',
-      dataIndex: 'num',
+      dataIndex: 'evaluationNumber',
       sorter: true,
       needTotal: true,
     },
     {
       title: '评价来源',
-      dataIndex: 'source',
+      dataIndex: 'orgName',
     },
     {
       title: '评价星级',
       render: (record) => (
-        <Rate disabled defaultValue={record.star} />
+        <Rate disabled defaultValue={record.averageScore} />
       ),
     },
     {
       title: '操作',
       render: (record) => (
         <Fragment>
-          <a onClick={() => this.handleOpenDetail(record)}>评价详情</a>
+          <Link to={{pathname:'/evaluation-center/evaluation-details',detail:record}}>评价详情</Link>
         </Fragment>
       ),
     },
@@ -77,7 +81,19 @@ class EvaluationManagement extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'evaluationTable/fetch',
+      payload: {
+        page: 1,
+        count: 10,
+        matterName: '',
+        matterId: '',
+        areaName: '',
+        sourceId: '',
+        score: '',
+      },
+    });
+    dispatch({
+      type: 'evaluationOther/fetch',
     });
   }
 
@@ -92,8 +108,8 @@ class EvaluationManagement extends PureComponent {
     }, {});
 
     const params = {
-      currentPage: pagination.current,
-      pageSize: pagination.pageSize,
+      page: pagination.current,
+      count: pagination.pageSize,
       ...formValues,
       ...filters,
     };
@@ -102,7 +118,7 @@ class EvaluationManagement extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'evaluationTable/fetch',
       payload: params,
     });
   };
@@ -114,8 +130,16 @@ class EvaluationManagement extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'rule/fetch',
-      payload: {},
+      type: 'evaluationTable/fetch',
+      payload: {
+        page: 1,
+        count: 10,
+        matterName: '',
+        matterId: '',
+        areaName: '',
+        sourceId: '',
+        score: '',
+      },
     });
   };
 
@@ -150,31 +174,38 @@ class EvaluationManagement extends PureComponent {
       });
 
       dispatch({
-        type: 'rule/fetch',
+        type: 'evaluationTable/fetch',
         payload: values,
       });
     });
   };
 
-  handleOpenDetail = (record) => {
-    router.push('/evaluationdetails');
-  };
-
   renderSimpleForm() {
     const {
       form: { getFieldDecorator },
+      evaluationOther: { SourceAndAreaList },
     } = this.props;
+    let areaList = [];
+    if(Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
+      for(let i = 0, length = SourceAndAreaList.data.areaNameList.length;i < length;i++){
+        areaList.push(<Option value={SourceAndAreaList.data.areaNameList[i].key} key={SourceAndAreaList.data.areaNameList[i].key}>{SourceAndAreaList.data.areaNameList[i].value}</Option>)
+      }
+    }
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="事项名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('matterName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="事项地区">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('areaName')(
+                <Select placeholder="请选择">
+                  { areaList }
+                </Select>
+              )}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -198,18 +229,32 @@ class EvaluationManagement extends PureComponent {
   renderAdvancedForm() {
     const {
       form: { getFieldDecorator },
+      evaluationOther: { SourceAndAreaList },
     } = this.props;
+    let areaList = [], sourceList = [];
+    if(Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
+      for(let i = 0, length = SourceAndAreaList.data.areaNameList.length;i < length;i++){
+        areaList.push(<Option value={SourceAndAreaList.data.areaNameList[i].key} key={SourceAndAreaList.data.areaNameList[i].key}>{SourceAndAreaList.data.areaNameList[i].value}</Option>)
+      }
+      for(let i = 0, length = SourceAndAreaList.data.sourceList.length;i < length;i++){
+        sourceList.push(<Option value={SourceAndAreaList.data.sourceList[i].key} key={SourceAndAreaList.data.sourceList[i].key}>{SourceAndAreaList.data.sourceList[i].value}</Option>)
+      }
+    }
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="事项名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('matterName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="事项地区">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('areaName')(
+                <Select placeholder="请选择">
+                  { areaList }
+                </Select>
+              )}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -229,18 +274,22 @@ class EvaluationManagement extends PureComponent {
 
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="事项ID">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            <FormItem label="事项 I D">
+              {getFieldDecorator('matterId')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="评价来源">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('sourceId')(
+                <Select placeholder="请选择">
+                  { sourceList }
+                </Select>
+              )}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="评价星级">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('score')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>
@@ -255,11 +304,10 @@ class EvaluationManagement extends PureComponent {
 
   render() {
     const {
-      rule: { data },
+      evaluationTable: { evaluationTable },
       loading,
     } = this.props;
     const { selectedRows } = this.state;
-
     return (
       <PageHeaderWrapper title="事项评价管理">
         <Card bordered={false}>
@@ -268,7 +316,7 @@ class EvaluationManagement extends PureComponent {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={data}
+              data={evaluationTable}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}

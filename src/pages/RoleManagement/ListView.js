@@ -32,13 +32,13 @@ const statusMap = [
   {key:'8',icon:'error',text:'关闭'},
 ];
 /* eslint react/no-multi-comp:0 */
-@connect(({ sourceTable, sourceOther, loading }) => ({
-  sourceTable,
-  sourceOther,
-  loading: loading.models.sourceTable,
+@connect(({ sourcetable, sourceother, loading }) => ({
+  sourcetable,
+  sourceother,
+  loading: loading.models.sourcetable,
 }))
 @Form.create()
-class SourceConfigList extends PureComponent {
+class RoleManagement extends PureComponent {
   state = {
     selectedRows: [],
     formValues: {},
@@ -85,14 +85,14 @@ class SourceConfigList extends PureComponent {
           return <Fragment>
                   <a onClick={() => this.handleUpdate(record, 8)}>关闭</a>
                   <Divider type="vertical" />
-                  <Link to={{pathname:'/evaluation-center/source-config-edit',sourceMsg:record}}>查看</Link>
+                  <Link to={{pathname:'/evaluationcenter/sourceconfigedit',sourceMsg:record}}>查看</Link>
                 </Fragment>
         }
         else {
           return  <Fragment>
                     <a onClick={() => this.handleUpdate(record, 1)}>开启</a>
                     <Divider type="vertical" />
-                    <Link to={{pathname:'/evaluation-center/source-config-edit',sourceMsg:record}}>编辑</Link>
+                    <Link to={{pathname:'/evaluationcenter/sourceconfigedit',sourceMsg:record}}>编辑</Link>
                     <Divider type="vertical" />
                     <a onClick={() => this.handleUpdate(record, 2)}>删除</a>
                   </Fragment>
@@ -104,7 +104,7 @@ class SourceConfigList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'sourceTable/fetch',
+      type: 'sourcetable/fetch',
       payload: {
         page: 1,
         count: 10,
@@ -125,15 +125,13 @@ class SourceConfigList extends PureComponent {
       cancelText: "取消",
       onOk() {
         dispatch({
-          type: 'sourceOther/update',
+          type: 'sourceother/update',
           payload: params,
-          callback: () =>{
-            message.success('操作成功');
-            dispatch({
-              type: 'sourceTable/fetch',
-              payload: params,
-            });
-          }
+        });
+        message.success('操作成功');
+        dispatch({
+          type: 'sourcetable/fetch',
+          payload: params,
         });
       },
       onCancel() {},
@@ -161,7 +159,7 @@ class SourceConfigList extends PureComponent {
     }
 
     dispatch({
-      type: 'sourceTable/fetch',
+      type: 'sourcetable/fetch',
       payload: params,
     });
   };
@@ -173,7 +171,7 @@ class SourceConfigList extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'sourceTable/fetch',
+      type: 'sourcetable/fetch',
       payload: {
         page: 1,
         count: 10,
@@ -206,14 +204,14 @@ class SourceConfigList extends PureComponent {
       });
 
       dispatch({
-        type: 'sourceTable/fetch',
+        type: 'sourcetable/fetch',
         payload: values,
       });
     });
   };
 
   handleAddSource = () => {
-    router.push('/evaluation-center/source-config-add');
+    router.push('/evaluationcenter/sourceconfigadd');
   };
 
   renderForm() {
@@ -245,7 +243,7 @@ class SourceConfigList extends PureComponent {
 
   render() {
     const {
-      sourceTable: { sourceTable },
+      sourcetable: { sourceTable },
       loading,
     } = this.props;
     const { selectedRows } = this.state;
@@ -274,4 +272,4 @@ class SourceConfigList extends PureComponent {
   }
 }
 
-export default SourceConfigList;
+export default RoleManagement;

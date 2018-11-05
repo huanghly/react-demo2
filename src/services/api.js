@@ -124,3 +124,200 @@ export async function queryNotices() {
 export async function getFakeCaptcha(mobile) {
   return request(`/api/captcha?mobile=${mobile}`);
 }
+
+//评价中心
+export async function getEvaluationTable(params) {
+  return request('/matter/search', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getTemplateList() {
+  return request('/template/search');
+}
+
+export async function getSourceAndArea() {
+  return request('/matter/conditions');
+}
+
+export async function getEvaluationDetailTable(params) {
+  return request('/matter/eval/details', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getSourceTable(params) {
+  return request('/source/search', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function SourceUpdate(params) {
+  return request('/source/updatestate', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function SourceAdd(params) {
+  return request('/source/add', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getSourceInfo(params) {
+  return request('/source/find', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function SourceInfoUpdate(params) {
+  return request('/source/updateinfo', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getLabelRelationTable(params) {
+  return request('/tag/relation/search', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getLabelDisorderData(params) {
+  return request('/tag/relation/searchtags', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getLabelSettingTable(params) {
+  return request('/tag/relation/find', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function labelOrderResult(params) {
+  return request('/tag/relation/order', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function labelRelationUpdate(params) {
+  return request('/tag/relation/update', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function getLabelTable(params) {
+  return request('/tag/search', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function labelStateUpdate(params) {
+  return request('/tag/update', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function labelAdd(params) {
+  return request('/tag/add', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+//系统管理
+export async function login(params) {
+  return request('/qz-admin-app/sso/login', {
+    method: 'POST',
+    body: params,
+  });
+}
+
+export async function getUserTable(params) {
+  return request('/qz-admin-app/manage/user/getUsers', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function userDisable(params) {
+  return request('/qz-admin-app/manage/user/disableUser', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function userOpen(params) {
+  return request('/qz-admin-app/manage/user/enableUser', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function userEdit(params) {
+  return request('/qz-admin-app/manage/user/setUser', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}
+
+export async function userAdd(params) {
+  return request('/qz-admin-app/manage/user/addUser', {
+    method: 'POST',
+    body: {
+      ...params,
+    },
+  });
+}

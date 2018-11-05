@@ -17,6 +17,7 @@ import {
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import DescriptionList from '@/components/DescriptionList';
+import { formatDateTime, formatDateTimeReverse } from '@/utils/utils';
 
 import styles from './ManagementView.less';
 
@@ -31,9 +32,10 @@ const getValue = obj =>
     .join(',');
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ evaluationTable, evaluationOther, loading }) => ({
+  evaluationTable,
+  evaluationOther,
+  loading: loading.models.evaluationTable,
 }))
 @Form.create()
 class EvaluationDetails extends PureComponent {
@@ -46,24 +48,24 @@ class EvaluationDetails extends PureComponent {
   columns = [
     {
       title: '序号',
-      dataIndex: 'id',
+      dataIndex: 'key',
     },
     {
       title: '用户ID',
-      dataIndex: 'itemName',
+      dataIndex: 'userId',
     },
     {
       title: '评价标签',
-      dataIndex: 'area',
+      dataIndex: 'tags',
     },
     {
       title: '评价内容',
-      dataIndex: 'num',
+      dataIndex: 'content',
     },
     {
       title: '评价星级',
       render: (record) => (
-        <Rate disabled defaultValue={record.star} />
+        <Rate disabled defaultValue={record.score} />
       ),
     },
     {
@@ -72,15 +74,41 @@ class EvaluationDetails extends PureComponent {
     },
     {
       title: '评价时间',
-      dataIndex: 'callNo',
+      render: (record) => (
+        formatDateTime(record.gmtCreate)
+      ),
     },
   ];
 
+  componentWillMount() {
+    const detail = this.props.location.detail;
+    if(detail == undefined){
+      router.push('/evaluation-center/evaluation-management')
+    }
+  }
+
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch({
-      type: 'rule/fetch',
-    });
+    const detail = this.props.location.detail;
+    if(detail != undefined){
+      dispatch({
+        type: 'evaluationTable/fetchDetail',
+        payload: {
+          page: 1,
+          count: 10,
+          matterId: detail.matterId,
+          userId: '',
+          tagName: '',
+          content: '',
+          needMatter: false,
+          score: '',
+          sourceId: '',
+        }
+      });
+      dispatch({
+        type: 'evaluationOther/fetch',
+      });
+    }
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
@@ -94,8 +122,8 @@ class EvaluationDetails extends PureComponent {
     }, {});
 
     const params = {
-      currentPage: pagination.current,
-      pageSize: pagination.pageSize,
+      page: pagination.current,
+      count: pagination.pageSize,
       ...formValues,
       ...filters,
     };
@@ -104,7 +132,7 @@ class EvaluationDetails extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'evaluationTable/fetchDetail',
       payload: params,
     });
   };
@@ -116,8 +144,18 @@ class EvaluationDetails extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'rule/fetch',
-      payload: {},
+      type: 'evaluationTable/fetchDetail',
+      payload: {
+        page: 1,
+        count: 10,
+        matterId: detail.matterId,
+        userId: '',
+        tagName: '',
+        content: '',
+        needMatter: false,
+        score: '',
+        sourceId: '',
+      }
     });
   };
 
@@ -151,8 +189,13 @@ class EvaluationDetails extends PureComponent {
         formValues: values,
       });
 
+      if(values.time != undefined){
+        values.beginDateTime = formatDateTimeReverse(values.time[0]);
+        values.endDateTime = formatDateTimeReverse(values.time[1]);
+      }
+
       dispatch({
-        type: 'rule/fetch',
+        type: 'evaluationTable/fetchDetail',
         payload: values,
       });
     });
@@ -170,8 +213,8 @@ class EvaluationDetails extends PureComponent {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="用户ID">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            <FormItem label="用户 I D">
+              {getFieldDecorator('userId')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -200,13 +243,20 @@ class EvaluationDetails extends PureComponent {
   renderAdvancedForm() {
     const {
       form: { getFieldDecorator },
+      evaluationOther: { SourceAndAreaList },
     } = this.props;
+    let sourceList = [];
+    if(Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
+      for(let i = 0, length = SourceAndAreaList.data.sourceList.length;i < length;i++){
+        sourceList.push(<Option value={SourceAndAreaList.data.sourceList[i].key} key={SourceAndAreaList.data.sourceList[i].key}>{SourceAndAreaList.data.sourceList[i].value}</Option>)
+      }
+    }
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="用户ID">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            <FormItem label="用户 I D">
+              {getFieldDecorator('userId')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -232,17 +282,17 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="评价标签">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('tagName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="评价内容">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('content')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="评价星级">
-              {getFieldDecorator('star')(
+              {getFieldDecorator('score')(
                 <Select placeholder="请选择">
                   <Option value="1">1</Option>
                   <Option value="2">2</Option>
@@ -257,13 +307,9 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="评价来源">
-              {getFieldDecorator('source')(
+              {getFieldDecorator('sourceId')(
                 <Select placeholder="请选择">
-                  <Option value="1">1</Option>
-                  <Option value="2">2</Option>
-                  <Option value="3">3</Option>
-                  <Option value="4">4</Option>
-                  <Option value="5">5</Option>
+                  { sourceList }
                 </Select>
               )}
             </FormItem>
@@ -280,21 +326,22 @@ class EvaluationDetails extends PureComponent {
 
   render() {
     const {
-      rule: { data },
+      evaluationTable: { evaluationDetailTable },
       loading,
     } = this.props;
     const { selectedRows} = this.state;
+    const detail = this.props.location.detail;
     return (
       <PageHeaderWrapper title="事项评价详情">
         <Card bordered={false}>
-          <Button type="primary" style={{ float: 'right', marginBottom: 24 }} onClick={() => {router.push('/evaluationmanagement')}}>返回</Button>  
+          <Button type="primary" style={{ float: 'right', marginBottom: 24 }} onClick={() => {router.push('/evaluationcenter/evaluationmanagement')}}>返回</Button>  
           <DescriptionList size="large" title="评价详情" style={{ marginBottom: 32 }}>
-            <Description term="事项名称">1000000000</Description>
-            <Description term="事项所属地区">已取货</Description>
-            <Description term="事项ID">1234123421</Description>
-            <Description term="事项所属部门">3214321432</Description>
-            <Description term="总评价人次">3214321432</Description>
-            <Description term="评价星级">3214321432</Description>
+            <Description term="事项名称">{detail != undefined?detail.matterName:''}</Description>
+            <Description term="事项所属地区">{detail != undefined?detail.areaName:''}</Description>
+            <Description term="事项ID">{detail != undefined?detail.matterId:''}</Description>
+            <Description term="事项所属部门">{detail != undefined?detail.orgName:''}</Description>
+            <Description term="总评价人次">{detail != undefined?detail.evaluationNumber:''}</Description>
+            <Description term="评价星级"><Rate disabled defaultValue={detail != undefined?detail.averageScore:0} /></Description>
           </DescriptionList>
           <Divider style={{ marginBottom: 32 }} />
           <div className={styles.tableList}>
@@ -302,7 +349,7 @@ class EvaluationDetails extends PureComponent {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={data}
+              data={evaluationDetailTable}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}

@@ -20,10 +20,10 @@
     "test:component": "umi test ./src/components",
     "test:all": "node ./tests/run-tests.js",
     "prettier": "prettier --write ./src/**/**/**/*",
-    "docker:dev":"docker-compose -f ./docker/docker-compose.dev.yml up",
-    "docker:build":"docker-compose -f ./docker/docker-compose.dev.yml build",
-    "docker-prod:dev":"docker-compose -f ./docker/docker-compose.yml up",
-    "docker-prod:build":"docker-compose -f ./docker/docker-compose.yml build"
+    "docker:dev": "docker-compose -f ./docker/docker-compose.dev.yml up",
+    "docker:build": "docker-compose -f ./docker/docker-compose.dev.yml build",
+    "docker-prod:dev": "docker-compose -f ./docker/docker-compose.yml up",
+    "docker-prod:build": "docker-compose -f ./docker/docker-compose.yml build"
   },
   "dependencies": {
     "@antv/data-set": "^0.9.6",
@@ -49,6 +49,8 @@
     "react": "^16.5.1",
     "react-container-query": "^0.11.0",
     "react-copy-to-clipboard": "^5.0.1",
+    "react-dnd": "^5.0.0",
+    "react-dnd-html5-backend": "^5.0.1",
     "react-document-title": "^2.0.3",
     "react-dom": "^16.5.1",
     "react-fittext": "^1.0.0",

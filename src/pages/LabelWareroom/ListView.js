@@ -13,9 +13,11 @@ import {
   Badge,
   Select,
   Checkbox,
+  Table,
+  message,
 } from 'antd';
-import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
+import { formatDateTime } from '@/utils/utils';
 
 import styles from '../EvaluationManagement/ManagementView.less';
 
@@ -30,12 +32,51 @@ const getValue = obj =>
 const plainOptions = ['一星', '二星', '三星', '四星', '五星'];
 const defaultCheckedList = [];
 
-class SortList extends React.Component {
+@connect(({ labelWareroomOther }) => ({
+  labelWareroomOther,
+}))
+@Form.create()
+class SortModal extends React.Component {
+
   state = {
     checkedList: defaultCheckedList,
     indeterminate: false,
     checkAll: false,
   }
+  
+  okHandle = () => {
+    const { form, handleModalVisible, tableRefresh, dispatch } = this.props;
+    form.validateFields((err, fieldsValue) => {
+      if (err) return;
+      form.resetFields();
+      let scoreIdsList = this.state.checkedList.concat();
+      scoreIdsList.map((item, index) => {
+        let itemStr = '';
+        switch(item){
+          case '一星': itemStr = '1';break;
+          case '二星': itemStr = '2';break;
+          case '三星': itemStr = '3';break;
+          case '四星': itemStr = '4';break;
+          case '五星': itemStr = '5';break;
+          default: break;
+        }
+        scoreIdsList.splice(index,1,itemStr);
+      })
+
+      dispatch({
+        type: 'labelWareroomOther/add',
+        payload: {
+          name: fieldsValue.name,
+          scoreIds: scoreIdsList.join(','),
+        },
+        callback: () => {
+          handleModalVisible();
+          tableRefresh();
+        }
+      });
+      
+    });
+  };
 
   onChange = (checkedList) => {
     this.setState({
@@ -54,133 +95,137 @@ class SortList extends React.Component {
   };
 
   render() {
+    const {
+      form: { getFieldDecorator },
+    } = this.props;
+
+    const formItemLayout = {
+      labelCol: {
+        xs: { span: 24 },
+        sm: { span: 7 },
+      },
+      wrapperCol: {
+        xs: { span: 24 },
+        sm: { span: 12 },
+        md: { span: 10 },
+      },
+    };
+  
+    const { modalVisible, handleModalVisible} = this.props;
+
     return (
-      <div>
-        <div>
-          <Checkbox
-            indeterminate={this.state.indeterminate}
-            onChange={this.onCheckAllChange}
-            checked={this.state.checkAll}
+      <Modal
+        destroyOnClose
+        title="标签排序"
+        visible={modalVisible}
+        onOk={this.okHandle}
+        onCancel={() => handleModalVisible()}
+      >
+        <Form hideRequiredMark style={{ marginTop: 8 }}>
+          <FormItem {...formItemLayout} label={"标签名称"}>
+            {getFieldDecorator('name', {
+              rules: [
+                {
+                  required: true,
+                  message: "来源不能为空",
+                },
+              ],
+            })(<Input placeholder={"来源名称"} />)}
+          </FormItem>
+          <FormItem
+            {...formItemLayout}
+            label={"标签登记"}
           >
-            全选
-          </Checkbox>
-        </div>
-        <CheckboxGroup options={plainOptions} value={this.state.checkedList} onChange={this.onChange} />
-      </div>
+            {getFieldDecorator('scoreIds', {
+              rules: [
+                {
+                  required: true,
+                  message: "星级不能为空",
+                },
+              ],
+            })(
+            <div>            
+              <div>
+                <Checkbox
+                  indeterminate={this.state.indeterminate}
+                  onChange={this.onCheckAllChange}
+                  checked={this.state.checkAll}
+                >
+                  全选
+                </Checkbox>
+              </div>
+              <CheckboxGroup options={plainOptions} value={this.state.checkedList} onChange={this.onChange} />
+            </div>)}
+          </FormItem>
+        </Form>
+      </Modal>
     );
   }
+  
 }
-const SortModal = Form.create()(props => {
-  const {
-    form: { getFieldDecorator, getFieldValue },
-  } = props;
 
-  const formItemLayout = {
-    labelCol: {
-      xs: { span: 24 },
-      sm: { span: 7 },
-    },
-    wrapperCol: {
-      xs: { span: 24 },
-      sm: { span: 12 },
-      md: { span: 10 },
-    },
-  };
+const statusMap = [
+  {key:'1',icon:'success',text:'发布'},
+  {key:'4',icon:'default',text:'未发布'},
+  {key:'8',icon:'error',text:'撤回'},
+];
 
-  const submitFormLayout = {
-    wrapperCol: {
-      xs: { span: 24, offset: 0 },
-      sm: { span: 10, offset: 7 },
-    },
-  };
-
-  const { modalVisible, form, handleAdd, handleModalVisible, handleSubmit} = props;
-  const okHandle = () => {
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      form.resetFields();
-      //handleAdd(fieldsValue);
-      handleModalVisible();
-    });
-  };
-
-  return (
-    <Modal
-      destroyOnClose
-      title="标签排序"
-      visible={modalVisible}
-      onOk={okHandle}
-      onCancel={() => handleModalVisible()}
-    >
-      <Form onSubmit={handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
-        <FormItem {...formItemLayout} label={"来源名称"}>
-          {getFieldDecorator('title', {
-            rules: [
-              {
-                required: true,
-                message: "来源不能为空",
-              },
-            ],
-          })(<Input placeholder={"来源名称"} />)}
-        </FormItem>
-        <FormItem
-          {...formItemLayout}
-          label={"评价模版"}
-        >
-          <SortList/>
-        </FormItem>
-      </Form>
-    </Modal>
-  );
-});
-/* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ labelWareroomTable, labelWareroomOther, loading }) => ({
+  labelWareroomTable,
+  labelWareroomOther,
+  loading: loading.models.labelWareroomTable,
 }))
 @Form.create()
 class RelationWareroomList extends PureComponent {
   state = {
-    selectedRows: [],
+    selectedRowKeys: [],
     formValues: {},
     modalVisible: false,
+    tableData: []
   };
 
   columns = [
     {
       title: '标签名称',
-      dataIndex: 'itemName',
+      dataIndex: 'name',
     },
     {
-      title: '标签登记',
-      dataIndex: 'area',
+      title: '标签等级',
+      dataIndex: 'score',
     },
     {
       title: '状态',
-      render: (record) => (
-        <Badge status="success" text="成功" />
-      ),
+      dataIndex: 'state',
+      render: (val) => {
+        for(let i=0;i<statusMap.length;i++){
+          if(val == statusMap[i].key) {
+            return <Badge status={statusMap[i].icon} text={statusMap[i].text} />
+          }
+        }
+      },
     },
     {
       title: '创建时间',
-      dataIndex: 'star',
+      render: (record) => (
+        formatDateTime(record.gmtCreate)
+      ),
     },
     {
       title: '操作',
       render: (record) => {
 
-        if(record.star%2 == 0)
+        if(record.state == 4||record.state == 8)
           return (
             <Fragment>
-              <a onClick={() => this.handleRelease(record)}>发布</a>
+              <a onClick={() => this.handleUpdate(record, 1)}>发布</a>
               <Divider type="vertical" />
-              <a onClick={() => this.handleDel(record)}>删除</a>
+              <a onClick={() => this.handleUpdate(record, 2)}>删除</a>
             </Fragment>
           )
-        else 
+        else if(record.state == 1)
           return (
             <Fragment>
-              <a onClick={() => this.handleEdit(record)}>撤回</a>
+              <a onClick={() => this.handleUpdate(record, 8)}>撤回</a>
           </Fragment>
           )
       },
@@ -190,47 +235,55 @@ class RelationWareroomList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'labelWareroomTable/fetch',
+      payload: {
+        name: '',
+        state: '',
+      },
+      callback: (data) => {
+        this.setState({tableData: data.data})
+      }
     });
   }
 
-  handleRelease = (record) => {
+  handleUpdate = (record, state) => {
+    const { dispatch } = this.props;
+    let title = '';
+    switch (state) {
+      case 1: title = '发布'; break;
+      case 4: title = '删除'; break;
+      case 8: title = '撤回'; break;
+      default: break;
+    }
+    let that = this;
     confirm({
-      title: '是否发布该标签?',
+      title: '是否'+title+'该标签?',
       okText: "确认",
       cancelText: "取消",
       onOk() {
-        return new Promise((resolve, reject) => {
-          setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-        }).catch(() => console.log('Oops errors!'));
-      },
-      onCancel() {},
-    });
-  };
-
-  handleEdit = (record) => {
-    confirm({
-      title: '是否撤回该标签?',
-      okText: "确认",
-      cancelText: "取消",
-      onOk() {
-        return new Promise((resolve, reject) => {
-          setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-        }).catch(() => console.log('Oops errors!'));
-      },
-      onCancel() {},
-    });
-  };
-
-  handleDel = (record) => {
-    confirm({
-      title: '是否删除该标签?',
-      okText: "确认",
-      cancelText: "取消",
-      onOk() {
-        return new Promise((resolve, reject) => {
-          setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-        }).catch(() => console.log('Oops errors!'));
+        dispatch({
+          type: 'labelWareroomOther/update',
+          payload: {
+            state: state,
+            tagIds: record.id,
+          },
+          callback: () => {
+            dispatch({
+              type: 'labelWareroomTable/fetch',
+              payload: {
+                name: '',
+                state: '',
+              },
+              callback: (data) => {
+                message.success('操作成功');
+                that.setState({
+                  tableData: data.data,
+                  selectedRowKeys: []
+                })
+              }
+            });
+          }
+        });
       },
       onCancel() {},
     });
@@ -242,32 +295,6 @@ class RelationWareroomList extends PureComponent {
     });
   };
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
-    const { dispatch } = this.props;
-    const { formValues } = this.state;
-
-    const filters = Object.keys(filtersArg).reduce((obj, key) => {
-      const newObj = { ...obj };
-      newObj[key] = getValue(filtersArg[key]);
-      return newObj;
-    }, {});
-
-    const params = {
-      currentPage: pagination.current,
-      pageSize: pagination.pageSize,
-      ...formValues,
-      ...filters,
-    };
-    if (sorter.field) {
-      params.sorter = `${sorter.field}_${sorter.order}`;
-    }
-
-    dispatch({
-      type: 'rule/fetch',
-      payload: params,
-    });
-  };
-
   handleFormReset = () => {
     const { form, dispatch } = this.props;
     form.resetFields();
@@ -275,14 +302,17 @@ class RelationWareroomList extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'rule/fetch',
-      payload: {},
-    });
-  };
-
-  handleSelectRows = rows => {
-    this.setState({
-      selectedRows: rows,
+      type: 'labelWareroomTable/fetch',
+      payload: {
+        name: '',
+        state: '',
+      },
+      callback: (data) => {
+        this.setState({
+          tableData: data.data,
+          selectedRowKeys: []
+        })
+      }
     });
   };
 
@@ -304,18 +334,43 @@ class RelationWareroomList extends PureComponent {
       });
 
       dispatch({
-        type: 'rule/fetch',
+        type: 'labelWareroomTable/fetch',
         payload: values,
+        callback: (data) => {
+          this.setState({
+            tableData: data.data,
+            selectedRowKeys: []
+          })
+        }
       });
     });
   };
 
-  handleAddSource = () => {
-    router.push('/sourceconfigadd');
-  };
-
-  handleSubmit = () => {
-
+  handleStateBatchUpdate = (state) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'labelWareroomOther/update',
+      payload: {
+        state: state,
+        tagIds: this.state.selectedRowKeys.join(','),
+      },
+      callback: () => {
+        dispatch({
+          type: 'labelWareroomTable/fetch',
+          payload: {
+            name: '',
+            state: '',
+          },
+          callback: (data) => {
+            message.success('批量操作成功');
+            this.setState({
+              tableData: data.data,
+              selectedRowKeys: []
+            })
+          }
+        });
+      }
+    });
   };
 
   renderForm() {
@@ -332,13 +387,11 @@ class RelationWareroomList extends PureComponent {
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="状态">
-              {getFieldDecorator('name')(
+              {getFieldDecorator('state')(
                 <Select placeholder="请选择">
-                  <Option value="1">1</Option>
-                  <Option value="2">2</Option>
-                  <Option value="3">3</Option>
-                  <Option value="4">4</Option>
-                  <Option value="5">5</Option>
+                  <Select.Option value="1">发布</Select.Option>
+                  <Select.Option value="4">未发布</Select.Option>
+                  <Select.Option value="8">撤回</Select.Option>
                 </Select>
               )}
             </FormItem>
@@ -358,14 +411,34 @@ class RelationWareroomList extends PureComponent {
     );
   }
 
+  tableRefresh = () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'labelWareroomTable/fetch',
+      payload: {
+        name: '',
+        state: '',
+      },
+      callback: (data) => {
+        this.setState({tableData: data.data})
+      }
+    });
+  }
+
   render() {
-    const {
-      rule: { data },
-      loading,
-    } = this.props;
-    const { selectedRows, modalVisible } = this.state;
+    const { loading } = this.props;
+    const { modalVisible } = this.state;
     const parentMethods = {
       handleModalVisible: this.handleModalVisible,
+      tableRefresh: this.tableRefresh,
+    };
+
+    const { selectedRowKeys } = this.state;
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: (selectedRowKeys) => {
+        this.setState({selectedRowKeys: selectedRowKeys})
+      },
     };
 
     return (
@@ -377,25 +450,17 @@ class RelationWareroomList extends PureComponent {
               <Button type="primary" onClick={() => this.handleModalVisible(true)}>
                 新增
               </Button>
-              <Button type="default" onClick={() => this.handleAddSource()}>
-                发布
+              <Button type="primary" onClick={() => this.handleStateBatchUpdate(1)}>
+                批量发布
               </Button>
-              <Button type="danger" onClick={() => this.handleAddSource()}>
-                撤回
+              <Button type="default" onClick={() => this.handleStateBatchUpdate(8)}>
+                批量撤回
               </Button>
-              <Button type="primary" onClick={() => this.handleAddSource()}>
-                批量操作
+              <Button type="danger" onClick={() => this.handleStateBatchUpdate(2)}>
+                批量删除
               </Button>
             </div>
-            <StandardTable
-              selectedRows={selectedRows}
-              loading={loading}
-              data={data}
-              columns={this.columns}
-              onSelectRow={this.handleSelectRows}
-              onChange={this.handleStandardTableChange}
-              rowSelect
-            />
+            <Table rowKey="id" rowSelection={rowSelection} columns={this.columns} dataSource={this.state.tableData} loading={loading}/>
           </div>
         </Card>
         <SortModal {...parentMethods} modalVisible={modalVisible} />

@@ -2,6 +2,8 @@ import moment from 'moment';
 import React from 'react';
 import nzh from 'nzh/cn';
 import { parse, stringify } from 'qs';
+import { notification } from 'antd';
+import router from 'umi/router';
 
 export function fixedZero(val) {
   return val * 1 < 10 ? `0${val}` : val;
@@ -180,4 +182,52 @@ export function formatWan(val) {
 
 export function isAntdPro() {
   return window.location.hostname === 'preview.pro.ant.design';
+}
+
+export function dataFormater(sourceData, tableData) {
+  let newData = {
+    list: [],
+    pagination: {},
+  };
+  newData.list = tableData;
+  for(let i=0,length=tableData.length;i<length;i++){
+    newData.list[i].key = i + 1;
+  }
+  newData.pagination.current = sourceData.currentPage;
+  newData.pagination.pageSize = sourceData.count;
+  newData.pagination.total = sourceData.totalCount;
+  return newData;
+}
+
+export function errorHandle(res, callback) {
+  if(res.success){
+    return true;
+  }
+  else {
+    if(res.errorCode == '01'){
+      router.push('/user/login');
+    }
+    else {
+      notification.error({
+        message: '网络异常',
+        description: res.errorMsg,
+      });
+    }
+    return false;
+  }
+}
+
+export function formatDateTime(time) {  
+  var date = new Date(time);
+  var y = date.getFullYear();  
+  var m = date.getMonth() + 1;  
+  m = m < 10 ? ('0' + m) : m;  
+  var d = date.getDate();  
+  d = d < 10 ? ('0' + d) : d;  
+  return y + '-' + m + '-' + d;  
+}
+
+export function formatDateTimeReverse(time) {  
+  var date = new Date(time);
+  return Date.parse(date);
 }
