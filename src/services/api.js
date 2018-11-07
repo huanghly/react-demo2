@@ -127,7 +127,7 @@ export async function getFakeCaptcha(mobile) {
 
 //评价中心
 export async function getEvaluationTable(params) {
-  return request('/matter/search', {
+  return request('/qz-feed/matter/search', {
     method: 'POST',
     body: {
       ...params,
@@ -136,15 +136,15 @@ export async function getEvaluationTable(params) {
 }
 
 export async function getTemplateList() {
-  return request('/template/search');
+  return request('/qz-feed/template/search');
 }
 
 export async function getSourceAndArea() {
-  return request('/matter/conditions');
+  return request('/qz-feed/matter/conditions');
 }
 
 export async function getEvaluationDetailTable(params) {
-  return request('/matter/eval/details', {
+  return request('/qz-feed/matter/eval/details', {
     method: 'POST',
     body: {
       ...params,
@@ -153,7 +153,7 @@ export async function getEvaluationDetailTable(params) {
 }
 
 export async function getSourceTable(params) {
-  return request('/source/search', {
+  return request('/qz-feed/source/search', {
     method: 'POST',
     body: {
       ...params,
@@ -162,7 +162,7 @@ export async function getSourceTable(params) {
 }
 
 export async function SourceUpdate(params) {
-  return request('/source/updatestate', {
+  return request('/qz-feed/source/updatestate', {
     method: 'POST',
     body: {
       ...params,
@@ -171,7 +171,7 @@ export async function SourceUpdate(params) {
 }
 
 export async function SourceAdd(params) {
-  return request('/source/add', {
+  return request('/qz-feed/source/add', {
     method: 'POST',
     body: {
       ...params,
@@ -180,7 +180,7 @@ export async function SourceAdd(params) {
 }
 
 export async function getSourceInfo(params) {
-  return request('/source/find', {
+  return request('/qz-feed/source/find', {
     method: 'POST',
     body: {
       ...params,
@@ -189,7 +189,7 @@ export async function getSourceInfo(params) {
 }
 
 export async function SourceInfoUpdate(params) {
-  return request('/source/updateinfo', {
+  return request('/qz-feed/source/updateinfo', {
     method: 'POST',
     body: {
       ...params,
@@ -198,7 +198,7 @@ export async function SourceInfoUpdate(params) {
 }
 
 export async function getLabelRelationTable(params) {
-  return request('/tag/relation/search', {
+  return request('/qz-feed/tag/relation/search', {
     method: 'POST',
     body: {
       ...params,
@@ -207,7 +207,7 @@ export async function getLabelRelationTable(params) {
 }
 
 export async function getLabelDisorderData(params) {
-  return request('/tag/relation/searchtags', {
+  return request('/qz-feed/tag/relation/searchtags', {
     method: 'POST',
     body: {
       ...params,
@@ -216,7 +216,7 @@ export async function getLabelDisorderData(params) {
 }
 
 export async function getLabelSettingTable(params) {
-  return request('/tag/relation/find', {
+  return request('/qz-feed/tag/relation/find', {
     method: 'POST',
     body: {
       ...params,
@@ -225,7 +225,7 @@ export async function getLabelSettingTable(params) {
 }
 
 export async function labelOrderResult(params) {
-  return request('/tag/relation/order', {
+  return request('/qz-feed/tag/relation/order', {
     method: 'POST',
     body: {
       ...params,
@@ -234,7 +234,7 @@ export async function labelOrderResult(params) {
 }
 
 export async function labelRelationUpdate(params) {
-  return request('/tag/relation/update', {
+  return request('/qz-feed/tag/relation/update', {
     method: 'POST',
     body: {
       ...params,
@@ -243,7 +243,7 @@ export async function labelRelationUpdate(params) {
 }
 
 export async function getLabelTable(params) {
-  return request('/tag/search', {
+  return request('/qz-feed/tag/search', {
     method: 'POST',
     body: {
       ...params,
@@ -252,7 +252,7 @@ export async function getLabelTable(params) {
 }
 
 export async function labelStateUpdate(params) {
-  return request('/tag/update', {
+  return request('/qz-feed/tag/update', {
     method: 'POST',
     body: {
       ...params,
@@ -261,7 +261,7 @@ export async function labelStateUpdate(params) {
 }
 
 export async function labelAdd(params) {
-  return request('/tag/add', {
+  return request('/qz-feed/tag/add', {
     method: 'POST',
     body: {
       ...params,

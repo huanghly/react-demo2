@@ -22,10 +22,12 @@ export default {
     *fetchDetail({ payload }, { call, put }) {
       const response = yield call(getEvaluationDetailTable, payload);
       if(errorHandle(response)) {
-        yield put({
-          type: 'saveDetailList',
-          payload: dataFormater(response, response.data.evaluationList),
-        });
+        if(response.data != null && response.data.evaluationList != null) {
+          yield put({
+            type: 'saveDetailList',
+            payload: dataFormater(response, response.data.evaluationList),
+          });
+        }
       }
     },
   },

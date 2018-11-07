@@ -37,6 +37,7 @@ class EvaluationManagement extends PureComponent {
     expandForm: false,
     selectedRows: [],
     formValues: {},
+    evalNumOrder: 2,
   };
 
   columns = [
@@ -65,7 +66,7 @@ class EvaluationManagement extends PureComponent {
     {
       title: '评价星级',
       render: (record) => (
-        <Rate disabled defaultValue={record.averageScore} />
+        <Rate disabled defaultValue={parseInt(record.averageScore)} />
       ),
     },
     {
@@ -90,6 +91,7 @@ class EvaluationManagement extends PureComponent {
         areaName: '',
         sourceId: '',
         score: '',
+        evalNumOrder: 2,
       },
     });
     dispatch({
@@ -113,8 +115,13 @@ class EvaluationManagement extends PureComponent {
       ...formValues,
       ...filters,
     };
-    if (sorter.field) {
-      params.sorter = `${sorter.field}_${sorter.order}`;
+    if(sorter.order == 'ascend') {
+      params.evalNumOrder = 1;
+      this.setState({evalNumOrder: 1});
+    }
+    else {
+      params.evalNumOrder = 2;
+      this.setState({evalNumOrder: 2});
     }
 
     dispatch({
@@ -139,6 +146,7 @@ class EvaluationManagement extends PureComponent {
         areaName: '',
         sourceId: '',
         score: '',
+        evalNumOrder: this.state.evalNumOrder,
       },
     });
   };
@@ -173,6 +181,8 @@ class EvaluationManagement extends PureComponent {
         formValues: values,
       });
 
+      values.evalNumOrder = this.state.evalNumOrder;
+
       dispatch({
         type: 'evaluationTable/fetch',
         payload: values,
@@ -186,9 +196,11 @@ class EvaluationManagement extends PureComponent {
       evaluationOther: { SourceAndAreaList },
     } = this.props;
     let areaList = [];
-    if(Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
-      for(let i = 0, length = SourceAndAreaList.data.areaNameList.length;i < length;i++){
-        areaList.push(<Option value={SourceAndAreaList.data.areaNameList[i].key} key={SourceAndAreaList.data.areaNameList[i].key}>{SourceAndAreaList.data.areaNameList[i].value}</Option>)
+    if(SourceAndAreaList != null && Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
+      if(SourceAndAreaList.data.areaNameList != null) {
+        for(let i = 0, length = SourceAndAreaList.data.areaNameList.length;i < length;i++){
+          areaList.push(<Option value={SourceAndAreaList.data.areaNameList[i].key} key={SourceAndAreaList.data.areaNameList[i].key}>{SourceAndAreaList.data.areaNameList[i].value}</Option>)
+        }
       }
     }
     return (
@@ -196,7 +208,7 @@ class EvaluationManagement extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="事项名称">
-              {getFieldDecorator('matterName')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('matterName')(<Input placeholder="请输入" maxLength="30"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -232,12 +244,16 @@ class EvaluationManagement extends PureComponent {
       evaluationOther: { SourceAndAreaList },
     } = this.props;
     let areaList = [], sourceList = [];
-    if(Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
-      for(let i = 0, length = SourceAndAreaList.data.areaNameList.length;i < length;i++){
-        areaList.push(<Option value={SourceAndAreaList.data.areaNameList[i].key} key={SourceAndAreaList.data.areaNameList[i].key}>{SourceAndAreaList.data.areaNameList[i].value}</Option>)
+    if(SourceAndAreaList != null && Object.keys(SourceAndAreaList).length != 0 && SourceAndAreaList.success) {
+      if(SourceAndAreaList.data.areaNameList != null) {
+        for(let i = 0, length = SourceAndAreaList.data.areaNameList.length;i < length;i++){
+          areaList.push(<Option value={SourceAndAreaList.data.areaNameList[i].key} key={SourceAndAreaList.data.areaNameList[i].key}>{SourceAndAreaList.data.areaNameList[i].value}</Option>)
+        }
       }
-      for(let i = 0, length = SourceAndAreaList.data.sourceList.length;i < length;i++){
-        sourceList.push(<Option value={SourceAndAreaList.data.sourceList[i].key} key={SourceAndAreaList.data.sourceList[i].key}>{SourceAndAreaList.data.sourceList[i].value}</Option>)
+      if(SourceAndAreaList.data.sourceList != null) {
+        for(let i = 0, length = SourceAndAreaList.data.sourceList.length;i < length;i++){
+          sourceList.push(<Option value={SourceAndAreaList.data.sourceList[i].key} key={SourceAndAreaList.data.sourceList[i].key}>{SourceAndAreaList.data.sourceList[i].value}</Option>)
+        }
       }
     }
     return (
@@ -245,7 +261,7 @@ class EvaluationManagement extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="事项名称">
-              {getFieldDecorator('matterName')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('matterName')(<Input placeholder="请输入" maxLength="30"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -275,7 +291,7 @@ class EvaluationManagement extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="事项 I D">
-              {getFieldDecorator('matterId')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('matterId')(<Input placeholder="请输入" maxLength="10"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -289,7 +305,15 @@ class EvaluationManagement extends PureComponent {
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="评价星级">
-              {getFieldDecorator('score')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('score')(
+                <Select placeholder="请选择">
+                  <Option value="1">1</Option>
+                  <Option value="2">2</Option>
+                  <Option value="3">3</Option>
+                  <Option value="4">4</Option>
+                  <Option value="5">5</Option>
+                </Select>
+              )}
             </FormItem>
           </Col>
         </Row>

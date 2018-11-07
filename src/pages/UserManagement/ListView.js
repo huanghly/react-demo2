@@ -87,14 +87,14 @@ class UserManagement extends PureComponent {
       render: (record) => {
         if(record.status == '1') {
           return <Fragment>
-                  <Link to={{pathname:'/systemmanagement/useredit',userInfo:record}}>编辑</Link>
+                  <Link to={{pathname:'/system-management/user-edit',userInfo:record}}>编辑</Link>
                   <Divider type="vertical" />
                   <a onClick={() => this.handleOpen(record)}>恢复</a>
                 </Fragment>
         }
         else if(record.status == '0'){
           return <Fragment>
-                  <Link to={{pathname:'/systemmanagement/useredit',userInfo:record}}>编辑</Link>
+                  <Link to={{pathname:'/system-management/user-edit',userInfo:record}}>编辑</Link>
                   <Divider type="vertical" />
                   <a onClick={() => this.handleDisable(record)}>禁用</a>
                 </Fragment>
@@ -295,7 +295,7 @@ class UserManagement extends PureComponent {
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Button type="primary" onClick={() => {router.push('/systemmanagement/useradd')}}>
+              <Button type="primary" onClick={() => {router.push('/system-management/user-add')}}>
                 开通用户
               </Button>
             </div>

@@ -30,7 +30,6 @@ const getValue = obj =>
     .join(',');
 
 const plainOptions = ['一星', '二星', '三星', '四星', '五星'];
-const defaultCheckedList = [];
 
 @connect(({ labelWareroomOther }) => ({
   labelWareroomOther,
@@ -39,7 +38,7 @@ const defaultCheckedList = [];
 class SortModal extends React.Component {
 
   state = {
-    checkedList: defaultCheckedList,
+    checkedList: [],
     indeterminate: false,
     checkAll: false,
   }
@@ -72,6 +71,7 @@ class SortModal extends React.Component {
         callback: () => {
           handleModalVisible();
           tableRefresh();
+          this.setState({checkedList: [], checkAll: false})
         }
       });
       
@@ -116,7 +116,7 @@ class SortModal extends React.Component {
     return (
       <Modal
         destroyOnClose
-        title="标签排序"
+        title="新增标签"
         visible={modalVisible}
         onOk={this.okHandle}
         onCancel={() => handleModalVisible()}
@@ -348,29 +348,34 @@ class RelationWareroomList extends PureComponent {
 
   handleStateBatchUpdate = (state) => {
     const { dispatch } = this.props;
-    dispatch({
-      type: 'labelWareroomOther/update',
-      payload: {
-        state: state,
-        tagIds: this.state.selectedRowKeys.join(','),
-      },
-      callback: () => {
-        dispatch({
-          type: 'labelWareroomTable/fetch',
-          payload: {
-            name: '',
-            state: '',
-          },
-          callback: (data) => {
-            message.success('批量操作成功');
-            this.setState({
-              tableData: data.data,
-              selectedRowKeys: []
-            })
-          }
-        });
-      }
-    });
+    if(this.state.selectedRowKeys.join(',') == ''){
+      message.warning('请至少选择一项');
+    }
+    else {
+      dispatch({
+        type: 'labelWareroomOther/update',
+        payload: {
+          state: state,
+          tagIds: this.state.selectedRowKeys.join(','),
+        },
+        callback: () => {
+          dispatch({
+            type: 'labelWareroomTable/fetch',
+            payload: {
+              name: '',
+              state: '',
+            },
+            callback: (data) => {
+              message.success('批量操作成功');
+              this.setState({
+                tableData: data.data,
+                selectedRowKeys: []
+              })
+            }
+          });
+        }
+      });
+    }
   };
 
   renderForm() {

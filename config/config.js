@@ -61,10 +61,15 @@ export default {
     '@antv/data-set': 'DataSet',
   },
   proxy: {
-    '/qz-admin-app': {
-      target: 'http://118.178.118.114/qz-admin-app',
+    // '/qz-admin-app': {
+    //   target: 'http://118.178.118.114/qz-admin-app',
+    //   changeOrigin: true,
+    //   pathRewrite: { '^/qz-admin-app': '' },
+    // },
+    '/qz-feed': {
+      target: 'http://118.178.118.114/qz-feed',
       changeOrigin: true,
-      pathRewrite: { '^/qz-admin-app': '' },
+      pathRewrite: { '^/qz-feed': '' },
     },
   },
   ignoreMomentLocale: true,

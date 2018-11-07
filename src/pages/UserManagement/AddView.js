@@ -31,7 +31,7 @@ class UserAdd extends PureComponent {
           payload: values,
           callback: () => {
             message.success('操作成功');
-            router.push('/systemmanagement/usermanagement');
+            router.push('/system-management/user-management');
           }
         });
       }
@@ -67,7 +67,7 @@ class UserAdd extends PureComponent {
 
     return (
       <PageHeaderWrapper
-        title={<FormattedMessage id="menu.systemmanagement.useredit" />}
+        title={<FormattedMessage id="menu.system-management.user-edit" />}
       >
         <Card bordered={false}>
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
@@ -145,7 +145,7 @@ class UserAdd extends PureComponent {
               <Button type="primary" htmlType="submit" loading={submitting}>
                 <FormattedMessage id="form.submit" />
               </Button>
-              <Button style={{ marginLeft: 8 }} onClick={() =>{router.push('/systemmanagement/usermanagement');}}>
+              <Button style={{ marginLeft: 8 }} onClick={() =>{router.push('/system-management/user-management');}}>
                 返回
               </Button>
             </FormItem>

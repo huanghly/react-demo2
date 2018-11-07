@@ -24,7 +24,7 @@ class UserEdit extends PureComponent {
     const userInfo = this.props.location.userInfo;
     console.log(userInfo)
     if(userInfo == undefined){
-      router.push('/systemmanagement/usermanagement');
+      router.push('/system-management/user-management');
     }
   }
 
@@ -35,13 +35,13 @@ class UserEdit extends PureComponent {
       if (!err) {
         const userInfo = this.props.location.userInfo;
         values.roleIds = values.roleIds.join(',');
-        values.userId = userInfo.id;
+        values.id = userInfo.id;
         dispatch({
           type: 'userother/edit',
           payload: values,
           callback: () => {
             message.success('操作成功');
-            router.push('/systemmanagement/usermanagement');
+            router.push('/system-management/user-management');
           }
         });
       }
@@ -77,13 +77,18 @@ class UserEdit extends PureComponent {
 
     return (
       <PageHeaderWrapper
-        title={<FormattedMessage id="menu.systemmanagement.useredit" />}
+        title={<FormattedMessage id="menu.system-management.user-edit" />}
       >
         <Card bordered={false}>
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
             <FormItem {...formItemLayout} label={'用户名'}>
               {getFieldDecorator('username', {
                 initialValue: userInfo != undefined ? userInfo.username: '',
+              })(<Input disabled/>)}
+            </FormItem>
+            <FormItem {...formItemLayout} label={'姓名'}>
+              {getFieldDecorator('name', {
+                initialValue: userInfo != undefined ? userInfo.name: '',
               })(<Input disabled/>)}
             </FormItem>
             <FormItem {...formItemLayout} label={'手机号'}>
@@ -142,7 +147,7 @@ class UserEdit extends PureComponent {
               <Button type="primary" htmlType="submit" loading={submitting}>
                 <FormattedMessage id="form.submit" />
               </Button>
-              <Button style={{ marginLeft: 8 }} onClick={() =>{router.push('/systemmanagement/usermanagement');}}>
+              <Button style={{ marginLeft: 8 }} onClick={() =>{router.push('/system-management/user-management');}}>
                 返回
               </Button>
             </FormItem>

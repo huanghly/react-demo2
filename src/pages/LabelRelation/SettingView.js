@@ -53,11 +53,16 @@ class LabelRelationSetting extends PureComponent {
         },
         callback: (data) => {
           let selectedTags = data.data.selectedTags;
-          let selectedRowKeys = [];
-          selectedTags.map(item => {
-            selectedRowKeys.push(item.tagId);
-          });
-          this.setState({ tableData: data.data.allTags, selectedRows: data.data.selectedTags, selectedRowKeys});
+          if(selectedTags != null) {
+            let selectedRowKeys = [];
+            selectedTags.map(item => {
+              selectedRowKeys.push(item.tagId);
+            });
+            this.setState({ selectedRows: data.data.selectedTags, selectedRowKeys});
+          }
+          if(data.data.allTags != null) {
+            this.setState({ tableData: data.data.allTags });
+          }
         }
       });
     }
@@ -105,6 +110,7 @@ class LabelRelationSetting extends PureComponent {
   }
 
   render() {
+    console.log(this.state.tableData)
     const { labelRelationTable: {LabelSettingData} } = this.props;
     const { selectedRowKeys } = this.state;
     const rowSelection = {

@@ -65,7 +65,7 @@ class EvaluationDetails extends PureComponent {
     {
       title: '评价星级',
       render: (record) => (
-        <Rate disabled defaultValue={record.score} />
+        <Rate disabled defaultValue={parseInt(record.score)} />
       ),
     },
     {
@@ -100,7 +100,7 @@ class EvaluationDetails extends PureComponent {
           userId: '',
           tagName: '',
           content: '',
-          needMatter: false,
+          needMatter: 2,
           score: '',
           sourceId: '',
         }
@@ -214,7 +214,7 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="用户 I D">
-              {getFieldDecorator('userId')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('userId')(<Input placeholder="请输入" maxLength="10"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -256,7 +256,7 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="用户 I D">
-              {getFieldDecorator('userId')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('userId')(<Input placeholder="请输入" maxLength="10"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -282,12 +282,12 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="评价标签">
-              {getFieldDecorator('tagName')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('tagName')(<Input placeholder="请输入" maxLength="30"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="评价内容">
-              {getFieldDecorator('content')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('content')(<Input placeholder="请输入" maxLength="200"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -341,7 +341,7 @@ class EvaluationDetails extends PureComponent {
             <Description term="事项ID">{detail != undefined?detail.matterId:''}</Description>
             <Description term="事项所属部门">{detail != undefined?detail.orgName:''}</Description>
             <Description term="总评价人次">{detail != undefined?detail.evaluationNumber:''}</Description>
-            <Description term="评价星级"><Rate disabled defaultValue={detail != undefined?detail.averageScore:0} /></Description>
+            <Description term="评价星级"><Rate disabled defaultValue={detail != undefined?parseInt(detail.averageScore):0} /></Description>
           </DescriptionList>
           <Divider style={{ marginBottom: 32 }} />
           <div className={styles.tableList}>

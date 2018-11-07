@@ -65,6 +65,8 @@ class SourceConfigEdit extends PureComponent {
       sourceOther: { sourceInfo },
     } = this.props;
 
+    const sourceMsg = this.props.location.sourceMsg;
+
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -87,7 +89,7 @@ class SourceConfigEdit extends PureComponent {
     let templateRadioList = [];
     if(Object.keys(sourceInfo).length != 0 && sourceInfo.success) {
       for(let i = 0, length = sourceInfo.data.templateList.length;i < length;i++){
-        templateRadioList.push(<Radio value={sourceInfo.data.templateList[i].key} key={sourceInfo.data.templateList[i].key}>{sourceInfo.data.templateList[i].value}</Radio>)
+        templateRadioList.push(<Radio value={sourceInfo.data.templateList[i].id} key={sourceInfo.data.templateList[i].id}>{sourceInfo.data.templateList[i].name}</Radio>)
       }
     }
     return (
@@ -108,7 +110,7 @@ class SourceConfigEdit extends PureComponent {
                   },
                 ],
                 initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.sourceName:'',
-              })(<Input placeholder={"来源名称"}/>)}
+              })(<Input placeholder={"来源名称"} disabled={sourceMsg != undefined && sourceMsg.state == 1?true:false}/>)}
             </FormItem>
             <FormItem
               {...formItemLayout}
@@ -116,9 +118,9 @@ class SourceConfigEdit extends PureComponent {
             >
               <div>
                 {getFieldDecorator('templateId', {
-                  initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.selectedTemplateId.toString():'',
+                  initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.selectedTemplateId:'',
                 })(
-                  <Radio.Group>
+                  <Radio.Group disabled={sourceMsg != undefined && sourceMsg.state == 1?true:false}>
                     {templateRadioList}
                   </Radio.Group>
                 )}
@@ -133,12 +135,15 @@ class SourceConfigEdit extends PureComponent {
                   },
                 ],
                 initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.backUrl:'',
-              })(<Input placeholder={"请输入评价完成后打开页面地址"}/>)}
+              })(<Input placeholder={"请输入评价完成后打开页面地址"} disabled={sourceMsg != undefined && sourceMsg.state == 1?true:false}/>)}
             </FormItem>
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
-              <Button type="primary" htmlType="submit" loading={submitting}>
-                提交
-              </Button>
+              {
+                sourceMsg != undefined && sourceMsg.state != 1 &&
+                <Button type="primary" htmlType="submit" loading={submitting}>
+                  提交
+                </Button>
+              }
               <Button style={{ marginLeft: 8 }} onClick={this.returnSourceList}>
                 返回
               </Button>

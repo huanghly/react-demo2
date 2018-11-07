@@ -72,7 +72,7 @@ class SourceConfigAdd extends PureComponent {
     let templateRadioList = [];
     if(Object.keys(templateList).length != 0 && templateList.success) {
       for(let i = 0, length = templateList.data.length;i < length;i++){
-        templateRadioList.push(<Radio value={templateList.data[i].key} key={templateList.data[i].key}>{templateList.data[i].value}</Radio>)
+        templateRadioList.push(<Radio value={templateList.data[i].id} key={templateList.data[i].id}>{templateList.data[i].name}</Radio>)
       }
     }
 
