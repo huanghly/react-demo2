@@ -49,31 +49,40 @@ class EvaluationDetails extends PureComponent {
     {
       title: '序号',
       dataIndex: 'key',
+      width: 60,
     },
     {
       title: '用户ID',
       dataIndex: 'userId',
+      width: 150,
     },
     {
       title: '评价标签',
       dataIndex: 'tags',
+      width: 400,
     },
     {
       title: '评价内容',
       dataIndex: 'content',
+      width: 200,
     },
     {
       title: '评价星级',
+      width: 200,
       render: (record) => (
-        <Rate disabled defaultValue={parseInt(record.score)} />
+        <div title={record.score}>
+          <Rate disabled value={Math.ceil(parseFloat(record.score))} />
+        </div>
       ),
     },
     {
       title: '评价来源',
       dataIndex: 'source',
+      width: 130,
     },
     {
       title: '评价时间',
+      width: 120,
       render: (record) => (
         formatDateTime(record.gmtCreate)
       ),
@@ -114,6 +123,7 @@ class EvaluationDetails extends PureComponent {
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
     const { dispatch } = this.props;
     const { formValues } = this.state;
+    const detail = this.props.location.detail;
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
       const newObj = { ...obj };
@@ -131,6 +141,8 @@ class EvaluationDetails extends PureComponent {
       params.sorter = `${sorter.field}_${sorter.order}`;
     }
 
+    params.matterId = detail.matterId,
+
     dispatch({
       type: 'evaluationTable/fetchDetail',
       payload: params,
@@ -139,6 +151,7 @@ class EvaluationDetails extends PureComponent {
 
   handleFormReset = () => {
     const { form, dispatch } = this.props;
+    const detail = this.props.location.detail;
     form.resetFields();
     this.setState({
       formValues: {},
@@ -152,7 +165,7 @@ class EvaluationDetails extends PureComponent {
         userId: '',
         tagName: '',
         content: '',
-        needMatter: false,
+        needMatter: 2,
         score: '',
         sourceId: '',
       }
@@ -176,6 +189,7 @@ class EvaluationDetails extends PureComponent {
     e.preventDefault();
 
     const { dispatch, form } = this.props;
+    const detail = this.props.location.detail;
 
     form.validateFields((err, fieldsValue) => {
       if (err) return;
@@ -185,13 +199,15 @@ class EvaluationDetails extends PureComponent {
         updatedAt: fieldsValue.updatedAt && fieldsValue.updatedAt.valueOf(),
       };
 
+      values.matterId = detail.matterId;
+
       this.setState({
         formValues: values,
       });
 
       if(values.time != undefined){
-        values.beginDateTime = formatDateTimeReverse(values.time[0]);
-        values.endDateTime = formatDateTimeReverse(values.time[1]);
+        values.beginDateTime = formatDateTimeReverse(values.time[0], 'begin');
+        values.endDateTime = formatDateTimeReverse(values.time[1], 'end');
       }
 
       dispatch({
@@ -201,7 +217,7 @@ class EvaluationDetails extends PureComponent {
     });
   };
 
-  onChange = () => {
+  onChange = (date, dateString) => {
 
   };
 
@@ -214,7 +230,7 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="用户 I D">
-              {getFieldDecorator('userId')(<Input placeholder="请输入" maxLength="10"/>)}
+              {getFieldDecorator('userId')(<Input placeholder="请输入" maxLength="20"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -256,7 +272,7 @@ class EvaluationDetails extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="用户 I D">
-              {getFieldDecorator('userId')(<Input placeholder="请输入" maxLength="10"/>)}
+              {getFieldDecorator('userId')(<Input placeholder="请输入" maxLength="20"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -294,11 +310,11 @@ class EvaluationDetails extends PureComponent {
             <FormItem label="评价星级">
               {getFieldDecorator('score')(
                 <Select placeholder="请选择">
-                  <Option value="1">1</Option>
-                  <Option value="2">2</Option>
-                  <Option value="3">3</Option>
-                  <Option value="4">4</Option>
-                  <Option value="5">5</Option>
+                  <Option value="1">0-1</Option>
+                  <Option value="2">1-2</Option>
+                  <Option value="3">2-3</Option>
+                  <Option value="4">3-4</Option>
+                  <Option value="5">4-5</Option>
                 </Select>
               )}
             </FormItem>
@@ -334,14 +350,14 @@ class EvaluationDetails extends PureComponent {
     return (
       <PageHeaderWrapper title="事项评价详情">
         <Card bordered={false}>
-          <Button type="primary" style={{ float: 'right', marginBottom: 24 }} onClick={() => {router.push('/evaluationcenter/evaluationmanagement')}}>返回</Button>  
+          <Button type="primary" style={{ float: 'right', marginBottom: 24 }} onClick={() => {router.push('/evaluation-center/evaluation-management')}}>返回</Button>  
           <DescriptionList size="large" title="评价详情" style={{ marginBottom: 32 }}>
             <Description term="事项名称">{detail != undefined?detail.matterName:''}</Description>
             <Description term="事项所属地区">{detail != undefined?detail.areaName:''}</Description>
             <Description term="事项ID">{detail != undefined?detail.matterId:''}</Description>
             <Description term="事项所属部门">{detail != undefined?detail.orgName:''}</Description>
             <Description term="总评价人次">{detail != undefined?detail.evaluationNumber:''}</Description>
-            <Description term="评价星级"><Rate disabled defaultValue={detail != undefined?parseInt(detail.averageScore):0} /></Description>
+            <Description term="评价星级"><div title={detail != undefined?parseFloat(detail.averageScore):0}><Rate disabled value={detail != undefined?Math.ceil(parseFloat(detail.averageScore)):0} /></div></Description>
           </DescriptionList>
           <Divider style={{ marginBottom: 32 }} />
           <div className={styles.tableList}>

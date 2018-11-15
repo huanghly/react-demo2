@@ -17,11 +17,14 @@ export default {
       }
     },
 
-    *add({ payload, callback }, { call, put }) {
+    *add({ payload, callback, callback2 }, { call, put }) {
       const response = yield call(labelAdd, payload);
       if(errorHandle(response)) {
         message.success('添加成功')
         callback();
+      }
+      else {
+        callback2();
       }
     },
   },

@@ -189,9 +189,11 @@ export function dataFormater(sourceData, tableData) {
     list: [],
     pagination: {},
   };
-  newData.list = tableData;
-  for(let i=0,length=tableData.length;i<length;i++){
-    newData.list[i].key = i + 1;
+  if(tableData != null) {
+    newData.list = tableData;
+    for(let i=0,length=tableData.length;i<length;i++){
+      newData.list[i].key = i + 1;
+    }
   }
   newData.pagination.current = sourceData.currentPage;
   newData.pagination.pageSize = sourceData.count;
@@ -209,7 +211,7 @@ export function errorHandle(res, callback) {
     }
     else {
       notification.error({
-        message: '网络异常',
+        message: '错误',
         description: res.errorMsg,
       });
     }
@@ -227,7 +229,19 @@ export function formatDateTime(time) {
   return y + '-' + m + '-' + d;  
 }
 
-export function formatDateTimeReverse(time) {  
-  var date = new Date(time);
-  return Date.parse(date);
+export function formatDateTimeReverse(time, type) {  
+  let date = new Date(time);
+  let date1 = '',date2 = '';
+  if(type == 'begin') {
+    date1 = date.toString().substring(0, 16);
+    date2 = date.toString().substring(24, date.toString().length);
+    let newDate = new Date(date1 + '00:00:00' + date2);
+    return Date.parse(newDate);
+  }
+  else if(type == 'end') {
+    date1 = date.toString().substring(0, 16);
+    date2 = date.toString().substring(24, date.toString().length);
+    let newDate = new Date(date1 + '23:59:59' + date2);
+    return Date.parse(newDate);
+  }
 }

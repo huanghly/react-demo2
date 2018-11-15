@@ -71,8 +71,12 @@ class SortModal extends React.Component {
         callback: () => {
           handleModalVisible();
           tableRefresh();
-          this.setState({checkedList: [], checkAll: false})
-        }
+          this.setState({checkedList: [], checkAll: false});
+        },
+        callback2: () => {
+          console.log(1)
+          this.setState({checkedList: [], checkAll: false});
+        },
       });
       
     });
@@ -119,7 +123,7 @@ class SortModal extends React.Component {
         title="新增标签"
         visible={modalVisible}
         onOk={this.okHandle}
-        onCancel={() => handleModalVisible()}
+        onCancel={() => {this.setState({checkedList: [], checkAll: false});handleModalVisible();}}
       >
         <Form hideRequiredMark style={{ marginTop: 8 }}>
           <FormItem {...formItemLayout} label={"标签名称"}>
@@ -127,14 +131,14 @@ class SortModal extends React.Component {
               rules: [
                 {
                   required: true,
-                  message: "来源不能为空",
+                  message: "标签不能为空",
                 },
               ],
-            })(<Input placeholder={"来源名称"} />)}
+            })(<Input placeholder={"标签名称"} maxLength="15"/>)}
           </FormItem>
           <FormItem
             {...formItemLayout}
-            label={"标签登记"}
+            label={"标签等级"}
           >
             {getFieldDecorator('scoreIds', {
               rules: [

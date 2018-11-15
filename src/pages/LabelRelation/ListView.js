@@ -175,6 +175,7 @@ class DragSortingTable extends React.Component {
   submit() {
     const {
       handleModalVisible,
+      handleSearch,
       chooseRow,
       dispatch,
     } = this.props;
@@ -186,6 +187,7 @@ class DragSortingTable extends React.Component {
       },
       callback: () => {
         handleModalVisible();
+        handleSearch(event);
       }
     });
   }
@@ -218,7 +220,7 @@ const getValue = obj =>
     .join(',');
 
 const SortModal = Form.create()(props => {
-  const { modalVisible, handleModalVisible, chooseRow } = props;
+  const { modalVisible, handleModalVisible, handleSearch, chooseRow } = props;
   return (
     <Modal
       destroyOnClose
@@ -227,7 +229,7 @@ const SortModal = Form.create()(props => {
       onCancel={() => handleModalVisible()}
       footer={null}
     >
-      <DragTable handleModalVisible={handleModalVisible} chooseRow={chooseRow}/>
+      <DragTable handleModalVisible={handleModalVisible} handleSearch={handleSearch} chooseRow={chooseRow}/>
     </Modal>
   );
 });
@@ -251,6 +253,7 @@ class LabelRelationList extends PureComponent {
     {
       title: '序号',
       dataIndex: 'key',
+      width: 60,
     },
     {
       title: '来源名称',
@@ -262,6 +265,7 @@ class LabelRelationList extends PureComponent {
     },
     {
       title: '操作',
+      width: 220,
       render: (record) => (
         <Fragment>
           <Link to={{pathname:'/evaluation-center/label-relation-setting',tagDetail:record}}>设置关联标签</Link>
@@ -322,8 +326,8 @@ class LabelRelationList extends PureComponent {
     }, {});
 
     const params = {
-      currentPage: pagination.current,
-      pageSize: pagination.pageSize,
+      page: pagination.current,
+      count: pagination.pageSize,
       ...formValues,
       ...filters,
     };
@@ -356,8 +360,10 @@ class LabelRelationList extends PureComponent {
   };
 
   handleSearch = e => {
-    e.preventDefault();
-
+    if(e){
+      e.preventDefault();
+    }
+    
     const { dispatch, form } = this.props;
 
     form.validateFields((err, fieldsValue) => {
@@ -419,6 +425,7 @@ class LabelRelationList extends PureComponent {
     const { selectedRows, modalVisible } = this.state;
     const parentMethods = {
       handleModalVisible: this.handleModalVisible,
+      handleSearch: this.handleSearch,
     };
 
     return (

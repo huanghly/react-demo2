@@ -130,8 +130,8 @@ class SourceConfigEdit extends PureComponent {
               {getFieldDecorator('backUrl', {
                 rules: [
                   {
-                    required: true,
-                    message: "页面地址不能为空",
+                    message: "页面地址必须是一个合法的地址",
+                    type: 'url'
                   },
                 ],
                 initialValue: Object.keys(sourceInfo).length != 0?sourceInfo.data.backUrl:'',

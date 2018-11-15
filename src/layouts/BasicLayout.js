@@ -150,6 +150,59 @@ class BasicLayout extends React.PureComponent {
     const {
       route: { routes },
     } = this.props;
+    let data = {
+      "result": [
+        {
+          "id": "1001",
+          "name":"系统管理",
+          "code":"system",
+          "pid":"0",
+          "permType":"0",
+          "zindex":"100",
+          "url":"/evaluation-center/evaluation-management"
+        },
+        {
+          "id": "1001",
+          "name":"系统管理",
+          "code":"system",
+          "pid":"0",
+          "permType":"0",
+          "zindex":"100",
+          "url":"/evaluation-center/source-config-list"
+        },        
+        {
+          "id": "1001",
+          "name":"系统管理",
+          "code":"system",
+          "pid":"0",
+          "permType":"0",
+          "zindex":"100",
+          "url":"/evaluation-center/label-relation-list"
+        },        
+        {
+          "id": "1001",
+          "name":"系统管理",
+          "code":"system",
+          "pid":"0",
+          "permType":"0",
+          "zindex":"100",
+          "url":"/evaluation-center/label-wareroom-list"
+        },
+        {
+          "id": "1001",
+          "name":"系统管理",
+          "code":"system",
+          "pid":"0",
+          "permType":"0",
+          "zindex":"100",
+          "url":"/system-management/user-management"
+        }
+      ],
+      "errorCode": "0",
+      "errorMsg": "成功",
+      "success": true
+    };
+
     return memoizeOneFormatter(routes);
   }
 

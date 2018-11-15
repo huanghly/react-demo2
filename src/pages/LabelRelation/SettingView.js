@@ -77,9 +77,17 @@ class LabelRelationSetting extends PureComponent {
 
   log = (id, e) =>{
     let newKeys = this.state.selectedRowKeys.concat();
-    var index = newKeys.indexOf(id);
-    newKeys.splice(index, 1)
-    this.setState({selectedRowKeys: newKeys})
+    let newRows = this.state.selectedRows.concat();
+    let keyIndex = newKeys.indexOf(id);
+    let rowIndex = 0;
+    newRows.map((item, index) => {
+      if(item.tagId == id) {
+        rowIndex = index;
+      }
+    })
+    newKeys.splice(keyIndex, 1);
+    newRows.splice(rowIndex, 1);
+    this.setState({selectedRowKeys: newKeys, selectedRows: newRows})
   };
 
   submit() {
@@ -99,10 +107,13 @@ class LabelRelationSetting extends PureComponent {
           callback: (data) => {
             let selectedTags = data.data.selectedTags;
             let selectedRowKeys = [];
-            selectedTags.map(item => {
-              selectedRowKeys.push(item.tagId);
-            });
-            this.setState({ tableData: data.data.allTags, selectedRows: data.data.selectedTags, selectedRowKeys});
+            console.log(selectedTags)
+            if(selectedTags) {
+              selectedTags.map(item => {
+                selectedRowKeys.push(item.tagId);
+              });
+              this.setState({ tableData: data.data.allTags, selectedRows: data.data.selectedTags, selectedRowKeys});
+            }
           }
         });
       }

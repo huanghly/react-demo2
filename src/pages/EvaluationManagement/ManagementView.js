@@ -61,16 +61,20 @@ class EvaluationManagement extends PureComponent {
     },
     {
       title: '评价来源',
-      dataIndex: 'orgName',
+      dataIndex: 'sourceList',
     },
     {
       title: '评价星级',
+      width: 200,
       render: (record) => (
-        <Rate disabled defaultValue={parseInt(record.averageScore)} />
+        <div title={record.averageScore}>
+          <Rate disabled value={Math.ceil(parseFloat(record.averageScore))} />
+        </div>
       ),
     },
     {
       title: '操作',
+      width: 100,
       render: (record) => (
         <Fragment>
           <Link to={{pathname:'/evaluation-center/evaluation-details',detail:record}}>评价详情</Link>
@@ -91,7 +95,7 @@ class EvaluationManagement extends PureComponent {
         areaName: '',
         sourceId: '',
         score: '',
-        evalNumOrder: 2,
+        evalNumOrder: 0,
       },
     });
     dispatch({
@@ -307,11 +311,11 @@ class EvaluationManagement extends PureComponent {
             <FormItem label="评价星级">
               {getFieldDecorator('score')(
                 <Select placeholder="请选择">
-                  <Option value="1">1</Option>
-                  <Option value="2">2</Option>
-                  <Option value="3">3</Option>
-                  <Option value="4">4</Option>
-                  <Option value="5">5</Option>
+                  <Option value="1">0-1</Option>
+                  <Option value="2">1-2</Option>
+                  <Option value="3">2-3</Option>
+                  <Option value="4">3-4</Option>
+                  <Option value="5">4-5</Option>
                 </Select>
               )}
             </FormItem>

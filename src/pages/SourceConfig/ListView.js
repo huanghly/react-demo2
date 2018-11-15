@@ -48,6 +48,7 @@ class SourceConfigList extends PureComponent {
     {
       title: '序号',
       dataIndex: 'key',
+      width: 60,
     },
     {
       title: '来源名称',
@@ -56,14 +57,20 @@ class SourceConfigList extends PureComponent {
     {
       title: '评价模板',
       dataIndex: 'templateName',
+      width: 100,
+    },
+    {
+      title: '来源标识',
+      dataIndex: 'idCode',
     },
     {
       title: '密钥',
-      dataIndex: 'idCode',
+      dataIndex: 'privateKey',
     },
     {
       title: '评价状态',
       dataIndex: 'state',
+      width: 100,
       render: (val) => {
         for(let i=0;i<statusMap.length;i++){
           if(val == statusMap[i].key) {
@@ -74,12 +81,14 @@ class SourceConfigList extends PureComponent {
     },
     {
       title: '最新操作时间',
+      width: 130,
       render: (record) => (
         formatDateTime(record.gmtModify)
       ),
     },
     {
       title: '操作',
+      width: 180,
       render: (record) => {
         if(record.state == 1) {
           return <Fragment>
@@ -119,8 +128,19 @@ class SourceConfigList extends PureComponent {
       sourceId: record.sourceId,
       state: state,
     }
+    let alertMessage = '';
+    switch (state) {
+      case 1:
+      alertMessage = '开启';
+        break;
+      case 2:
+      alertMessage = '删除';
+        break;
+      default:
+        break;
+    }
     confirm({
-      title: '是否开启该选项?',
+      title: '是否'+alertMessage+'该选项?',
       okText: "确认",
       cancelText: "取消",
       onOk() {
